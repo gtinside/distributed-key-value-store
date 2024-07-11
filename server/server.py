@@ -1,32 +1,28 @@
 from kazoo.client import KazooClient
 from kazoo.recipe.election import Election
 import logging
-logging.basicConfig()
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 
 class Server:
-   def __init__(self, zk_host, zk_port, identifier) -> None:
-      self.zk_client = KazooClient(hosts=f"{zk_host}:{zk_port}")
+   def __init__(self, identifier, zk_host, zk_port) -> None:
+      self.zk_connection = KazooClient(hosts=f"{zk_host}:{zk_port}")
+      self.zk_connection.start()
       self.identifier = identifier
+      self.election = self.zk_connection.Election("/election", identifier=self.identifier)
    
    def init_leader(self):
-      logging.info("The leader has been selected, setting it up")
+      logging.info(f"{self.identifier} has been chosen as the leader setting it up")
+
+   def get_nodes(self):
+      return self.zk_connection.get("/election")
+
 
    def start(self):
       logging.info("======== Starting server, may lord have mercy ===========")
-      # Step 1: Start the Kazoo Client
-      self.zk_client.start()
-      # Step 2: Check if the leader has been selected
-      election = self.zk_client.Election("/election", self.identifier)
-      election.run(self.init_leader)
-   
-
-   
-
-
-
-
-# Reading the properties file
-Server(zk_host="localhost", zk_port="2181", identifier="server-1").start()
+      # Step 1: Check if the leader has been selected
+      self.zk_connection.create("/election", ephemeral=True)
+      self.election.run(self.init_leader)
 
 
    

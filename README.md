@@ -19,5 +19,5 @@ A distributed messaging platform written in python
 ## Running this locally
 1. Run Zookeeper, feel free to use the containerized version
 ```
-docker run --name some-zookeeper --restart always -d zookeeper
+docker run --name some-zookeeper -p 2181:2181 --restart always -d zookeeper
 ```
