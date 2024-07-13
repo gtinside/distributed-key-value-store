@@ -3,7 +3,7 @@ from server.server import Server
 import random
 
 # Reading the properties file
-server_instance = Server(identifier=str(random.randint(1, 10)), zk_host="0.0.0.0", zk_port="2181")
+server_instance = Server(zk_host="0.0.0.0", zk_port="2181")
 server_instance.start()
 app = FastAPI()
 
