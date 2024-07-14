@@ -22,8 +22,9 @@ class Server:
       logging.info("Looks like children changed")
       children = self.zk_connection.get_children("/election")
       ids = sorted([int(str(child).replace("n_", "")) for child in children])
-      logging.info("Sorted ids %s" % ids)
-      logging.info("The leader is %s" % ids[0])
+      logging.info("Sorted ids %s and leader is %s, id is %s" % (ids, ids[0], self.identifier))
+      if ids[0] == self.identifier:
+         logging.info("I am the leader")
    
 
    def start(self):
@@ -34,7 +35,7 @@ class Server:
          child = self.zk_connection.create("/election/n_", ephemeral=True, sequence=True)
          logging.info("Created ephermal node %s" % child)
          if child:
-            self.identifier = child
+            self.identifier = int(str(child).replace("/election/n_", ""))
             self.zk_connection.get_children("/election", watch=self.watch_for_child_nodes)
    
 

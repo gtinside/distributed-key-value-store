@@ -1,14 +1,20 @@
 from fastapi import FastAPI
 from server.server import Server
-import random
+from contextlib import asynccontextmanager
 
-# Reading the properties file
-server_instance = Server(zk_host="0.0.0.0", zk_port="2181")
-server_instance.start()
-app = FastAPI()
+server_instance:Server = Server(zk_host="0.0.0.0", zk_port="2181")
+
+@asynccontextmanager
+async def init(app: FastAPI):
+    server_instance.start()
+    yield
+
+
+
+app = FastAPI(lifespan=init)
 
 @app.get("/nodes")
-def get_nodes():
+async def get_nodes():
     print(server_instance.get_nodes())
     return {"Hello": "World"}
 
