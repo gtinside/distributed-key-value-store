@@ -17,9 +17,9 @@ class Server:
       # Step 1: Initialize a consistent hash ring
       self._consistent_hash = ConsistentHashingImpl()
       children = self.zk_connection.get_children("/election")
-      ids = sorted([int(str(child).replace("n_", "")) for child in children])[1:]
+      ids = sorted([int(str(child).replace("n_", "")) for child in children])
       for id in ids:
-         self._consistent_hash.add_node(id)
+         self._consistent_hash.add_node(str(id))
 
 
    def get_nodes(self):
