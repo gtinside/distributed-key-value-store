@@ -1,5 +1,6 @@
+from utils.model import Data
 from kazoo.client import KazooClient
-from kazoo.recipe.election import Election
+from impl.consistent_hashing import ConsistentHashingImpl
 import logging
 import random
 
@@ -10,10 +11,16 @@ class Server:
       self.zk_connection = KazooClient(hosts=f"{zk_host}:{zk_port}")
       self.zk_connection.start()
       
-  
    
    def init_leader(self):
-      logging.info(f"{self.identifier} has been chosen as the leader setting it up")
+      logging.info(f"I - {self.identifier} have been chosen as the leader, doing the setup")
+      # Step 1: Initialize a consistent hash ring
+      self._consistent_hash = ConsistentHashingImpl()
+      children = self.zk_connection.get_children("/election")
+      ids = sorted([int(str(child).replace("n_", "")) for child in children])[1:]
+      for id in ids:
+         self._consistent_hash.add_node(id)
+
 
    def get_nodes(self):
       return self.zk_connection.get("/election")
@@ -25,6 +32,7 @@ class Server:
       logging.info("Sorted ids %s and leader is %s, id is %s" % (ids, ids[0], self.identifier))
       if ids[0] == self.identifier:
          logging.info("I am the leader")
+         self.init_leader()
    
 
    def start(self):
@@ -37,6 +45,10 @@ class Server:
          if child:
             self.identifier = int(str(child).replace("/election/n_", ""))
             self.zk_connection.get_children("/election", watch=self.watch_for_child_nodes)
+   
+
+   def add_data(self, data: Data):
+      return self._consistent_hash.get_node_for_data(data.key)
    
 
       

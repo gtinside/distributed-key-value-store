@@ -1,2 +1,3 @@
 kazoo
 fastapi
+py-consistent-hash
