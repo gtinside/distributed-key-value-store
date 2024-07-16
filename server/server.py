@@ -2,14 +2,16 @@ from utils.model import Data
 from kazoo.client import KazooClient
 from impl.consistent_hashing import ConsistentHashingImpl
 import logging
-import random
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 
 class Server:
-   def __init__(self, zk_host, zk_port) -> None:
+   def __init__(self, zk_host, zk_port, host, port) -> None:
       self.zk_connection = KazooClient(hosts=f"{zk_host}:{zk_port}")
       self.zk_connection.start()
+      self._host = host
+      self._port = port
+      self._id_host_map = dict()
       
    
    def init_leader(self):
@@ -17,9 +19,11 @@ class Server:
       # Step 1: Initialize a consistent hash ring
       self._consistent_hash = ConsistentHashingImpl()
       children = self.zk_connection.get_children("/election")
-      ids = sorted([int(str(child).replace("n_", "")) for child in children])
-      for id in ids:
+      for child in children:
+         data, stat = self.zk_connection.get(f"/election/{child}")
+         id = str(child).replace("n_", "")
          self._consistent_hash.add_node(str(id))
+         self._id_host_map[id] = data.decode()
 
 
    def get_nodes(self):
@@ -40,7 +44,8 @@ class Server:
       # Step 1: Create root node
       if self.zk_connection.ensure_path("/election"):
          # Step 2: Create a ephermal and sequence node
-         child = self.zk_connection.create("/election/n_", ephemeral=True, sequence=True)
+         child = self.zk_connection.create("/election/n_", ephemeral=True, 
+                                           sequence=True, value=f"{self._host}:8000".encode())
          logging.info("Created ephermal node %s" % child)
          if child:
             self.identifier = int(str(child).replace("/election/n_", ""))
@@ -48,7 +53,8 @@ class Server:
    
 
    def add_data(self, data: Data):
-      return self._consistent_hash.get_node_for_data(data.key)
+      node_for_data = self._consistent_hash.get_node_for_data(data.key)
+      
    
 
       
