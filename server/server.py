@@ -13,6 +13,7 @@ class Server:
       self._host = host
       self._port = port
       self._id_host_map = dict()
+      self._consistent_hash = dict()
       
    
    def init_leader(self):
@@ -57,7 +58,8 @@ class Server:
       node_for_data = self._consistent_hash.get_node_for_data(data.key)
       sp = str(self._id_host_map[node_for_data]).split(":")
       host, port = sp[0], sp[1]
-      requests.post(f"http://{host}:{port}/admin/add", data = {data.key:data.value})
+      req = requests.post(f"http://{self._host}:{self._port}/admin/add", data = {data.key:data.value})
+      logging.info(f"Received the response {req.status_code}")
 
       
    

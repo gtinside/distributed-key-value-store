@@ -21,3 +21,7 @@ A distributed messaging platform written in python
 ```
 docker run --name some-zookeeper -p 2181:2181 --restart always -d zookeeper
 ```
+2. To connect to ZooKeeper runnning in a container
+```
+docker run -it --rm --link some-zookeeper:zookeeper zookeeper zkCli.sh -server zookeeper
+```
