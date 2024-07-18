@@ -2,6 +2,7 @@ from utils.model import Data
 from kazoo.client import KazooClient
 from impl.consistent_hashing import ConsistentHashingImpl
 import logging
+import requests
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 
@@ -54,6 +55,10 @@ class Server:
 
    def add_data(self, data: Data):
       node_for_data = self._consistent_hash.get_node_for_data(data.key)
+      sp = str(self._id_host_map[node_for_data]).split(":")
+      host, port = sp[0], sp[1]
+      requests.post(f"http://{host}:{port}/admin/add", data = {data.key:data.value})
+
       
    
 
