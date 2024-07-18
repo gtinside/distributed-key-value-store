@@ -5,22 +5,16 @@ from utils.model import Data
 import socket
 import logging
 import uvicorn
-import sys
+import random
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 
 
 server_instance = None
-port = None
+port_range = [8000, 9000]
 
-@asynccontextmanager
-async def init(app: FastAPI):
-    server_instance = Server(zk_host="0.0.0.0", zk_port="2181", 
-                             host=socket.gethostbyname(socket.gethostname()), port=port)
-    server_instance.start()
-    yield
 
-app = FastAPI(lifespan=init)
+app = FastAPI()
 
 @app.get("/nodes")
 async def get_nodes():
@@ -38,8 +32,11 @@ async def admin_add(data: Data):
     
 
 if __name__ == "__main__":
-    # Reading arguments to figure out the port
-    port = sys.argv[0]
+    port = random.randint(port_range[0], port_range[1])
+    server_instance = Server(zk_host="0.0.0.0", zk_port="2181", 
+                             host=socket.gethostbyname(socket.gethostname()), port=port)
+    server_instance.start()
+    logging.info(f"This server will run on port: {port}")
     uvicorn.run(app, host="0.0.0.0", port=port)
 
 

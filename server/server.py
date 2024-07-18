@@ -46,7 +46,7 @@ class Server:
       if self.zk_connection.ensure_path("/election"):
          # Step 2: Create a ephermal and sequence node
          child = self.zk_connection.create("/election/n_", ephemeral=True, 
-                                           sequence=True, value=f"{self._host}:8000".encode())
+                                           sequence=True, value=f"{self._host}:{self._port}".encode())
          logging.info("Created ephermal node %s" % child)
          if child:
             self.identifier = int(str(child).replace("/election/n_", ""))
