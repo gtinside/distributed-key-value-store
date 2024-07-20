@@ -1,13 +1,12 @@
 from utils.model import Data
 from kazoo.client import KazooClient
 from impl.consistent_hashing import ConsistentHashingImpl
+from lsmt.mem_table import MemTable
 import logging
 import requests
-import sys
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
-SIZE_LIMIT = 1000 # size in bytes
-DATA_DIR = "/"
 
 class Server:
    def __init__(self, zk_host, zk_port, host, port) -> None:
@@ -17,7 +16,7 @@ class Server:
       self._port = port
       self._id_host_map = dict()
       self._consistent_hash = dict()
-      self._data_cache = dict()
+      self._cache= MemTable()
       
    
    def init_leader(self):
@@ -66,10 +65,7 @@ class Server:
       logging.info(f"Received the response {req.status_code}")
    
    def add_data_to_cache(self, data: Data):
-      self._data_cache[data.key] = data.value
-      # Check the size of dictionary and dump it to data file
-      if sys.getsizeof(self._data_cache) > SIZE_LIMIT:
-         # Dump the data to data files
+      self._cache.add(data)
       
    
 
