@@ -3,3 +3,4 @@ fastapi
 py-consistent-hash
 requests
 schedule
+loguru
