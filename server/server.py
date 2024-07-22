@@ -4,6 +4,7 @@ from impl.consistent_hashing import ConsistentHashingImpl
 from lsmt.mem_table import MemTable
 import logging
 import requests
+from scheduler.scheduler import Scheduler
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
@@ -17,6 +18,8 @@ class Server:
       self._id_host_map = dict()
       self._consistent_hash = dict()
       self._cache= MemTable()
+      self._scheduler = Scheduler(self._cache, 1)
+      self._scheduler.init()
       
    
    def init_leader(self):

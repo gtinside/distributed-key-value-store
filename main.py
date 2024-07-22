@@ -29,6 +29,7 @@ async def create(data: Data):
 @app.post("/admin/add/")
 async def admin_add(data: Data):
     logging.info(f"Received a request from master to add data to add {data.key}")
+    server_instance.add_data_to_cache(data)
     
 
 if __name__ == "__main__":
