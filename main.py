@@ -30,6 +30,12 @@ async def create(data: Data):
 async def admin_add(data: Data):
     logging.info(f"Received a request from master to add data to add {data.key}")
     server_instance.add_data_to_cache(data)
+    return {"Status": "Completed"}
+
+@app.get("/get/")
+async def get_data(key: str):
+    logging.info(f"Received a request for retrieving data for key: {key}")
+    return server_instance.get_data(key)
     
 
 if __name__ == "__main__":

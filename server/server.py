@@ -4,6 +4,7 @@ from impl.consistent_hashing import ConsistentHashingImpl
 from lsmt.mem_table import MemTable
 import logging
 import requests
+from lsmt.sstable import SSTable
 from scheduler.scheduler import Scheduler
 
 
@@ -18,7 +19,8 @@ class Server:
       self._id_host_map = dict()
       self._consistent_hash = dict()
       self._cache= MemTable()
-      self._scheduler = Scheduler(self._cache, 1)
+      self._ss_table = SSTable()
+      self._scheduler = Scheduler(cache=self._cache)
       self._scheduler.init()
       
    
@@ -69,6 +71,14 @@ class Server:
    
    def add_data_to_cache(self, data: Data):
       self._cache.add(data)
+   
+   def get_data(self, key):
+      try:
+         return self._cache.get_data(key)
+      except ValueError:
+         return self._ss_table.get_data(key)
+
+
       
    
 

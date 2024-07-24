@@ -10,6 +10,8 @@ A distributed messaging platform written in python
     1. Compaction
     2. Replicas
     3. Write ahead logs
+7. Data is read from and written to Memtables
+8. Once flushed to SSTable, Memtables are emptied
 
 
 ## Dependencies
@@ -25,3 +27,8 @@ docker run --name some-zookeeper -p 2181:2181 --restart always -d zookeeper
 ```
 docker run -it --rm --link some-zookeeper:zookeeper zookeeper zkCli.sh -server zookeeper
 ```
+
+## Limitations
+- Race condition, if the data is getting inserted into cache and cache becomes qualified for a flush to SSTable. 
+- Configuration items such as data directory, port range, flush condition should all come from a properties file.
+- When getting data from SSTable, only the searched key will be made available in the Memcache
