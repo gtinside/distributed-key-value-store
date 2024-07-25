@@ -26,10 +26,10 @@ class SSTable:
     def read_data_file(self, data_file, start_offset, end_offset):
         with open(data_file, "rb") as fp_data_file:
             fp_data_file.seek(start_offset)
-            data_bytes = fp_data_file.read(end_offset - start_offset + 1)
+            data_bytes = fp_data_file.read(end_offset - start_offset)
             logger.info("Read {}", data_bytes.decode())
             data_split = data_bytes.decode().split(":")
-            return Data(data_split[0], data_split[1], data_split[2])
+            return Data(key=data_split[0], value=data_split[1], timestamp=data_split[2])
 
 
     

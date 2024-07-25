@@ -10,7 +10,10 @@ class MemTable:
     
     def sort_by_key(self):
         self._data_map = dict(sorted(self._data_map.items(), key = lambda item: item[0]))
-        return self._data_map
+    
+    def get_items(self):
+        self.sort_by_key()
+        return self._data_map.items()
 
     def get_length(self):
         return len(self._data_map)

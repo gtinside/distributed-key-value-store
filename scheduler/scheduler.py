@@ -32,8 +32,7 @@ class Scheduler:
             start_byte, end_byte= 0, 0
             index_data = dict()
             with open(data_file_name, 'wb') as data_file:
-                self.cache = self.cache.sort_by_key()
-                for key,value in self.cache.items():
+                for key,value in self.cache.get_items():
                     data = f"{key}:{value['value']}:{value['timestamp']}".encode()
                     end_byte+=len(data)
                     index_data[key] = {"start":start_byte, "end": end_byte, "timestamp": value["timestamp"]}

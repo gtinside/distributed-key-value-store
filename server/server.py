@@ -17,7 +17,7 @@ class Server:
       self._host = host
       self._port = port
       self._id_host_map = dict()
-      self._consistent_hash = dict()
+      self._consistent_hash = None
       self._cache= MemTable()
       self._ss_table = SSTable()
       self._scheduler = Scheduler(cache=self._cache)
@@ -64,19 +64,24 @@ class Server:
 
    def add_data(self, data: Data):
       node_for_data = self._consistent_hash.get_node_for_data(data.key)
-      sp = str(self._id_host_map[node_for_data]).split(":")
-      host, port = sp[0], sp[1]
       req = requests.post(f"http://{self._host}:{self._port}/admin/add", data = {data.key:data.value})
       logging.info(f"Received the response {req.status_code}")
    
    def add_data_to_cache(self, data: Data):
       self._cache.add(data)
-   
+
    def get_data(self, key):
+      '''
+      This function is primarily for retrieving the data from local MemTable of a node
+      If the data is not found in MemTable (cache), then its retrieved from SSTables.
+      Cache is warmed post the retrieval from SSTable
+      '''
       try:
          return self._cache.get_data(key)
       except ValueError:
-         return self._ss_table.get_data(key)
+         data = self._ss_table.get_data(key)
+         self._cache.add(data)
+         return data
 
 
       
