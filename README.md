@@ -7,11 +7,12 @@ A distributed messaging platform written in python
 4. Data to be stored in Log Structured Merge Tree
 5. GET, PUT and DELETE APIs
 6. Not available as part of MVP
-    1. Compaction
-    2. Replicas
-    3. Write ahead logs
+    1. Replicas
+    2. Write ahead logs
 7. Data is read from and written to Memtables
 8. Once flushed to SSTable, Memtables are emptied
+9. DELETE marks the data to be collected during compaction
+10. Role of Compaction in MVP is to take care of updates and deletes - so effectively rewrite the index and data file
 
 
 ## Dependencies
