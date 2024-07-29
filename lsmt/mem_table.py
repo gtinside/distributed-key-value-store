@@ -23,7 +23,7 @@ class MemTable:
 
     def get_data(self, key):
         if key in self._data_map:
-            return Data(key, self._data_map[key].value, self._data_map[key].timestamp)
+            return self._data_map[key]
         raise ValueError("Key is not in Memtable")
 
     

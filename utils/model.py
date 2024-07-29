@@ -6,7 +6,7 @@ from datetime import datetime
 class Data(BaseModel):
     key: str
     value: str
-    timestamp: datetime | None
+    timestamp: int = int(round(time.time()))
 
 class Operation(IntEnum):
     insert = 1
