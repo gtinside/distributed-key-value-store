@@ -1,11 +1,11 @@
-from utils.model import Data, DataInternal
+from utils.model import Data
 from dataclasses import dataclass
 
 @dataclass
 class MemTable:
     _data_map = dict()
 
-    def add(self, data:DataInternal):
+    def add(self, data:Data):
         self._data_map[data.key] = data
     
     def sort_by_key(self):
