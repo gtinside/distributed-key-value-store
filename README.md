@@ -40,3 +40,5 @@ docker run -it --rm --link some-zookeeper:zookeeper zookeeper zkCli.sh -server z
 - Migrate to Poetry for better dependency management
 - Source all properties from a property file
 - Compaction loads data from all the files in memory and then merges, updates, deletes and create new SSTable file
+- There can be a race condition when both flush to SSTable and Compaction starts at the same time
+- There can also be a race condtion when SSTables are being read for a GET and being archived by Compaction at the same time 

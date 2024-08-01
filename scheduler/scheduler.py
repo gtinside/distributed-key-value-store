@@ -5,6 +5,7 @@ from loguru import logger
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
 import sys
+from compaction import Compaction
 
 logger.add(sys.stdout, colorize=True, format="<green>{time}</green> <level>{message}</level>")
 
@@ -19,6 +20,7 @@ class Scheduler:
         logger.info("Initializing the schedule")
         scheduler = BackgroundScheduler()
         scheduler.add_job(self.mem_table_flush, 'interval', seconds=60)
+        scheduler.add_job(Compaction().compact(), 'interval', seconds=60)
         scheduler.start()
     
     def mem_table_flush(self):

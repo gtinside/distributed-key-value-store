@@ -5,7 +5,7 @@ import json
 from collections import defaultdict
 import time
 
-DATA_DIR = "/tmp"
+DATA_DIR = "/workspaces/distributed-key-value-store/test/data"
 
 @dataclass
 class Compaction:
@@ -23,9 +23,9 @@ class Compaction:
         key_offset_map = dict()
         deleted_keys = set()
         file_key_map = defaultdict(set)
-        num_of_files = glob.glob(DATA_DIR/"*.index")
-        if len(num_of_files) > self.compact:
-            logger.info("Files are more the required limit, compaction can be done")
+        num_of_files = glob.glob(f"{DATA_DIR}/*.index")
+        if len(num_of_files) >= self.max_data_files:
+            logger.info("Files are more than the required limit, compaction can be done")
             for index_file in num_of_files:
                 with open(index_file, 'r') as f_index_file:
                     index_data = json.load(f_index_file)
@@ -40,7 +40,7 @@ class Compaction:
                                 key_offset_map[key] = index_data[key]
                         else:
                             key_offset_map[key] = index_data[key]
-                            file_key_map[f"{index_file.split('.')[1]}.data"].add(key)
+                            file_key_map[f"{index_file.split('.')[0]}.data"].add(key)
             
             # One more pass to get rid of deleted keys from the file
             for deleted_key in deleted_keys:
@@ -50,8 +50,8 @@ class Compaction:
 
             # Now iterating through the map and creating a combined SSTable data file
             file_id = int(time.time())
-            compacted_data_file = f"{file_id}c.data"
-            compacted_index_file = f"{file_id}c.index"
+            compacted_data_file = f"{DATA_DIR}/{file_id}c.data"
+            compacted_index_file = f"{DATA_DIR}/{file_id}c.index"
             c_start_byte = 0
             c_end_byte = 0
             compacted_index_data = dict()
@@ -68,9 +68,13 @@ class Compaction:
                             c_end_byte += len(data_bytes)
                             fp_compacted_data_file.write(data_bytes)
                             compacted_index_data[key] = {"start":c_start_byte, "end": c_end_byte, "timestamp": key_offset_map[key]["timestamp"] }
+                            c_start_byte=c_end_byte
             with open(compacted_index_file, 'w') as fp_compacted_index_file:
                 logger.info("Writing index data to file: {}", compacted_index_file)
                 json.dump(compacted_index_data, fp_compacted_index_file)
+                
+            logger.info("Compaction Summary -> # of files compacted: {}, # of keys deleted: {}, # of keys written: {}", 
+                            len(file_key_map), len(deleted_keys), len(compacted_index_data))
 
                         
 
