@@ -69,6 +69,9 @@ class Server:
    
    def add_data_to_cache(self, data: Data):
       self._cache.add(data)
+   
+   def delete_data(self, key: str):
+      
 
    def get_data(self, key):
       '''

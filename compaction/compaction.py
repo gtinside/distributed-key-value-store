@@ -31,7 +31,7 @@ class Compaction:
                     index_data = json.load(f_index_file)
                     for key in index_data:
                         # Check for deletes
-                        if index_data[key]["timestamp"] < 0:
+                        if bool(index_data[key]["deleted"]):
                             deleted_keys.add(key)
                         # Check for updates first
                         elif key in key_offset_map:
@@ -67,7 +67,9 @@ class Compaction:
                             data_bytes = fp_data_file.read(end_offset - start_offset)
                             c_end_byte += len(data_bytes)
                             fp_compacted_data_file.write(data_bytes)
-                            compacted_index_data[key] = {"start":c_start_byte, "end": c_end_byte, "timestamp": key_offset_map[key]["timestamp"] }
+                            compacted_index_data[key] = {"start":c_start_byte, "end": c_end_byte, 
+                                                         "timestamp": key_offset_map[key]["timestamp"], 
+                                                         "deleted": key_offset_map[key]["deleted"]}
                             c_start_byte=c_end_byte
             with open(compacted_index_file, 'w') as fp_compacted_index_file:
                 logger.info("Writing index data to file: {}", compacted_index_file)

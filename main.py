@@ -36,6 +36,10 @@ async def admin_add(data: Data):
 async def get_data(key: str):
     logging.info(f"Received a request for retrieving data for key: {key}")
     return server_instance.get_data(key)
+
+@app.post("/admin/delete")
+async def delete_data(key: str):
+    logging.info(f"Received a request from master to delete data for key: {key}")
     
 
 if __name__ == "__main__":

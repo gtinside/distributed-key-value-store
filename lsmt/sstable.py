@@ -19,8 +19,11 @@ class SSTable:
                 if key in index_data:
                     logger.info("Found the {} in {}, starting at {} ending at {}", 
                                 key, index_file, index_data[key]["start"], index_data[key]["end"])
+                    if bool(index_data[key]["deleted"]):
+                        break
                     data_file_name = str(index_file).split(".")[0] + ".data"
                     return self.read_data_file(data_file_name, index_data[key]["start"], index_data[key]["end"])
+        raise ValueError(f"Data with key: {key} does not exist")
     
 
     def read_data_file(self, data_file, start_offset, end_offset):
@@ -29,7 +32,7 @@ class SSTable:
             data_bytes = fp_data_file.read(end_offset - start_offset)
             logger.info("Read {}", data_bytes.decode())
             data_split = data_bytes.decode().split(":")
-            return Data(key=data_split[0], value=data_split[1], timestamp=data_split[2])
+            return Data(key=data_split[0], value=data_split[1], timestamp=data_split[2], deleted=data_split[3])
 
 
     
