@@ -16,11 +16,6 @@ port_range = [8000, 9000]
 
 app = FastAPI()
 
-@app.get("/nodes")
-async def get_nodes():
-    logging.info(server_instance.get_nodes())
-    return {"Hello": "World"}
-
 @app.post("/add/")
 async def create(data: Data):
     logging.info(f"{server_instance.add_data(data)} will be responsible for this data")
@@ -28,7 +23,7 @@ async def create(data: Data):
 
 @app.post("/admin/add/")
 async def admin_add(data: Data):
-    logging.info(f"Received a request from master to add data to add {data.key}")
+    logging.info(f"Received a request from the leader to add data for {data.key}")
     server_instance.add_data_to_cache(data)
     return {"Status": "Completed"}
 

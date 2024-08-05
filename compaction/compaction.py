@@ -5,7 +5,7 @@ import json
 from collections import defaultdict
 import time
 
-DATA_DIR = "/workspaces/distributed-key-value-store/test/data"
+DATA_DIR = "/tmp"
 
 @dataclass
 class Compaction:

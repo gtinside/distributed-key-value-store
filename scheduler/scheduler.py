@@ -4,8 +4,9 @@ import json
 from loguru import logger
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.job import Job
 import sys
-from compaction import Compaction
+from compaction.compaction import Compaction
 
 logger.add(sys.stdout, colorize=True, format="<green>{time}</green> <level>{message}</level>")
 
@@ -15,13 +16,13 @@ DATA_DIR = "/tmp"
 class Scheduler:
     cache: MemTable
     flush_size:int= 4
+    scheduler = BackgroundScheduler()
 
     def init(self):
         logger.info("Initializing the schedule")
-        scheduler = BackgroundScheduler()
-        scheduler.add_job(self.mem_table_flush, 'interval', seconds=60)
-        scheduler.add_job(Compaction().compact(), 'interval', seconds=60)
-        scheduler.start()
+        self.flush_job:Job = self.scheduler.add_job(self.mem_table_flush, 'interval', seconds=60)
+        self.compaction_job:Job = self.scheduler.add_job(Compaction().compact(), 'interval', seconds=60)
+        self.scheduler.start()
     
     def mem_table_flush(self):
         logger.info("Checking if flush can be performed")
@@ -44,6 +45,14 @@ class Scheduler:
                     json.dump(index_data, index_file)
             logger.info("The data has been written to Mem table, clearing it now")
             self.cache.clear_cache()
+        
+    
+    def trigger_compaction(self):
+        logger.info("Time to trigger compaction, flush needs to stop to avoid race conditions")
+        self.flush_job.pause()
+        Compaction().compact()
+        self.flush_job.resume()
+
 
 
 
