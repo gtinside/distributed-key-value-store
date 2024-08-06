@@ -6,6 +6,7 @@ from loguru import logger
 import requests
 from lsmt.sstable import SSTable
 from scheduler.scheduler import Scheduler
+from config import settings
 
 class Server:
    def __init__(self, zk_host, zk_port, host, port) -> None:
@@ -21,7 +22,7 @@ class Server:
       self._scheduler.init()
       
    
-################################ Leader Related Functions ########################################
+################################ Leader Node Functions ########################################
    def init_leader(self):
       logger.info(f"I - {self.identifier} have been chosen as the leader, doing the setup")
       # Step 1: Initialize a consistent hash ring

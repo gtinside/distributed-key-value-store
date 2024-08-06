@@ -4,3 +4,4 @@ py-consistent-hash
 requests
 apscheduler
 loguru
+dynaconf

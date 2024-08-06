@@ -17,6 +17,7 @@ A distributed messaging platform written in python
 
 ## Dependencies
 1. Kazoo - lib for dealing with ZooKeeper
+2. dynaconf - For managing python dependencies
 
 
 ## Running this locally
@@ -42,3 +43,4 @@ docker run -it --rm --link some-zookeeper:zookeeper zookeeper zkCli.sh -server z
 - Compaction loads data from all the files in memory and then merges, updates, deletes and create new SSTable file
 - There can be a race condition when both flush to SSTable and Compaction starts at the same time
 - There can also be a race condtion when SSTables are being read for a GET and being archived by Compaction at the same time 
+- Proper error handling across all APIs

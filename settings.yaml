@@ -1,0 +1,9 @@
+ports:
+  startPort: 8000 # starting port range
+  endPort: 9000 # ending port range
+dataDirectory: "/tmp" # directory where .data and .index files will be stored
+scheduler:
+  flush: 60 # Time in seconds to check if Memtable can be flushed to SSTable
+compaction:
+  schedule: 60 # Time in seconds to check if SSTable needs to compacted
+  numOfFile: 2 # Compact if number of data files >=numOfFiles 

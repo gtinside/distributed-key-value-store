@@ -22,7 +22,7 @@ class MemTable:
         self._data_map.clear()
 
     def get_data(self, key):
-        if key in self._data_map:
+        if key in self._data_map and not self._data_map[key].deleted:
             return self._data_map[key]
         raise ValueError("Key is not in Memtable")
 

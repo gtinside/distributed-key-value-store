@@ -7,10 +7,10 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.job import Job
 import sys
 from compaction.compaction import Compaction
+from config import settings
 
-logger.add(sys.stdout, colorize=True, format="<green>{time}</green> <level>{message}</level>")
 
-DATA_DIR = "/tmp"
+DATA_DIR = settings.
 
 @dataclass
 class Scheduler:
@@ -51,10 +51,8 @@ class Scheduler:
         logger.info("Time to trigger compaction, flush needs to stop to avoid race conditions")
         self.flush_job.pause()
         Compaction().compact()
+        logger.info("Enabling flush again")
         self.flush_job.resume()
-
-
-
 
     
 
