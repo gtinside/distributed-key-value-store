@@ -10,18 +10,17 @@ from compaction.compaction import Compaction
 from config import settings
 
 
-DATA_DIR = settings.
-
 @dataclass
 class Scheduler:
     cache: MemTable
-    flush_size:int= 4
+    flush_size:int= settings.memTable.numOfRecords
     scheduler = BackgroundScheduler()
+    data_dir = settings.dataDirectory
 
     def init(self):
         logger.info("Initializing the schedule")
-        self.flush_job:Job = self.scheduler.add_job(self.mem_table_flush, 'interval', seconds=60)
-        self.compaction_job:Job = self.scheduler.add_job(Compaction().compact(), 'interval', seconds=60)
+        self.flush_job:Job = self.scheduler.add_job(self.mem_table_flush, 'interval', seconds=settings.memTable.schedule)
+        self.compaction_job:Job = self.scheduler.add_job(Compaction().compact(), 'interval', seconds=settings.compation.schedule)
         self.scheduler.start()
     
     def mem_table_flush(self):
@@ -30,8 +29,8 @@ class Scheduler:
             # Start flushing, step 1 generate unique name for index and data file
             file_name = str(round(time.time()))
             logger.info("The file name for sstable will be {}", file_name)
-            index_file_name = f"{DATA_DIR}/{file_name}.index"
-            data_file_name = f"{DATA_DIR}/{file_name}.data"
+            index_file_name = f"{self.data_dir}/{file_name}.index"
+            data_file_name = f"{self.data_dir}/{file_name}.data"
             start_byte, end_byte= 0, 0
             index_data = dict()
             with open(data_file_name, 'wb') as data_file:

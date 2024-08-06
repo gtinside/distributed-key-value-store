@@ -6,7 +6,6 @@ from loguru import logger
 import requests
 from lsmt.sstable import SSTable
 from scheduler.scheduler import Scheduler
-from config import settings
 
 class Server:
    def __init__(self, zk_host, zk_port, host, port) -> None:

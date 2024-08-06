@@ -44,3 +44,4 @@ docker run -it --rm --link some-zookeeper:zookeeper zookeeper zkCli.sh -server z
 - There can be a race condition when both flush to SSTable and Compaction starts at the same time
 - There can also be a race condtion when SSTables are being read for a GET and being archived by Compaction at the same time 
 - Proper error handling across all APIs
+- All file manipulations to be migrated to pathlib

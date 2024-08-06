@@ -3,16 +3,17 @@ from loguru import logger
 import glob
 import json
 from utils.model import Data
+from config import settings
 
-DATA_DIR = "/tmp"
 
 @dataclass
 class SSTable:
+    data_dir = settings.dataDirectory
 
     def get_data(self, key):
         logger.info("Getting the data from SSTables for key: {}", key)
         # Step 1: Get all the index files -- ending in *.index
-        for index_file in glob.glob(f"{DATA_DIR}/*.index"):
+        for index_file in glob.glob(f"{self.data_dir}/*.index"):
             logger.info("Reading file: {}", index_file)
             with open(index_file, "r") as fp_index_file:
                 index_data = json.load(fp_index_file)

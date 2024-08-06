@@ -4,8 +4,9 @@ from loguru import logger
 import json
 from collections import defaultdict
 import time
+from config import settings
+import os
 
-DATA_DIR = "/tmp"
 
 @dataclass
 class Compaction:
@@ -17,31 +18,24 @@ class Compaction:
         b) Write another set of index and data files 
         c) Rename the existing index and files
     '''
-    max_data_files: int = 2
+    max_data_files: int = settings.compaction.numOfFiles
+    data_dir = settings.dataDirectory
 
     def compact(self):
         key_offset_map = dict()
         deleted_keys = set()
         file_key_map = defaultdict(set)
-        num_of_files = glob.glob(f"{DATA_DIR}/*.index")
-        if len(num_of_files) >= self.max_data_files:
+        
+        # list of index files
+        index_files = glob.glob(f"{self.data_dir}/*.index")
+        if len(index_files) >= self.max_data_files:
             logger.info("Files are more than the required limit, compaction can be done")
-            for index_file in num_of_files:
-                with open(index_file, 'r') as f_index_file:
-                    index_data = json.load(f_index_file)
-                    for key in index_data:
-                        # Check for deletes
-                        if bool(index_data[key]["deleted"]):
-                            deleted_keys.add(key)
-                        # Check for updates first
-                        elif key in key_offset_map:
-                            if key_offset_map[key]["timestamp"] < index_data[key]["timestamp"]:
-                                logger.info("Updated value for key: {} is available", key)
-                                key_offset_map[key] = index_data[key]
-                        else:
-                            key_offset_map[key] = index_data[key]
-                            file_key_map[f"{index_file.split('.')[0]}.data"].add(key)
+            self.prepare_data(index_files=index_files, key_offset_map=key_offset_map, 
+                              deleted_keys=deleted_keys, file_key_map=file_key_map)
             
+            # list of data files
+            data_files = [f"{self.data_dir}/{file}" for file in file_key_map.keys()]
+
             # One more pass to get rid of deleted keys from the file
             for deleted_key in deleted_keys:
                 if deleted_key in key_offset_map:
@@ -50,8 +44,8 @@ class Compaction:
 
             # Now iterating through the map and creating a combined SSTable data file
             file_id = int(time.time())
-            compacted_data_file = f"{DATA_DIR}/{file_id}c.data"
-            compacted_index_file = f"{DATA_DIR}/{file_id}c.index"
+            compacted_data_file = f"{self.data_dir}/{file_id}c.data"
+            compacted_index_file = f"{self.data_dir}/{file_id}c.index"
             c_start_byte = 0
             c_end_byte = 0
             compacted_index_data = dict()
@@ -74,9 +68,43 @@ class Compaction:
             with open(compacted_index_file, 'w') as fp_compacted_index_file:
                 logger.info("Writing index data to file: {}", compacted_index_file)
                 json.dump(compacted_index_data, fp_compacted_index_file)
+                logger.info(f"Moving {len(data_files)} data files and {len(index_files)} index files to backup")
+                for index_file, data_file in index_files, data_files:
+                    logger.info(f"Renaming {index_file} and {data_file}")
+                    os.rename(index_file, f"{index_file}.backup")
+                    os.rename(data_file, f"{data_file}.backup")
                 
             logger.info("Compaction Summary -> # of files compacted: {}, # of keys deleted: {}, # of keys written: {}", 
                             len(file_key_map), len(deleted_keys), len(compacted_index_data))
+    
+    def prepare_data(self, index_files, deleted_keys, key_offset_map, file_key_map):
+        """
+        This function iterates through the index files and identify the keys that are
+        eligible for compaction, which includes updates and deletes
+        
+        index_files: List of index files
+        deleted_keys: List of deleted keys
+        key_offset_map: Map of keys that needs to be compacted and the corresponding 
+            offset in data file
+        file_key_map: Map of data files and the associated keys that needs to be read
+        """
+        for index_file in index_files:
+                with open(index_file, 'r') as f_index_file:
+                    index_data = json.load(f_index_file)
+                    for key in index_data:
+                        # Check for deletes
+                        if bool(index_data[key]["deleted"]):
+                            deleted_keys.add(key)
+                        # Check for updates first
+                        elif key in key_offset_map:
+                            if key_offset_map[key]["timestamp"] < index_data[key]["timestamp"]:
+                                logger.info("Updated value for key: {} is available", key)
+                                key_offset_map[key] = index_data[key]
+                        else:
+                            key_offset_map[key] = index_data[key]
+                            file_key_map[f"{index_file.split('.')[0]}.data"].add(key)
+
+            
 
                         
 
