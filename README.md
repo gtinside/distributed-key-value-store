@@ -45,3 +45,4 @@ docker run -it --rm --link some-zookeeper:zookeeper zookeeper zkCli.sh -server z
 - There can also be a race condtion when SSTables are being read for a GET and being archived by Compaction at the same time 
 - Proper error handling across all APIs
 - All file manipulations to be migrated to pathlib
+- If a Key is marked as deleted = `true` and node crashes before the data is flushed to disk, key will not be deleted. This can be solved by having a WAL. 

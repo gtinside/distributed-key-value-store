@@ -21,19 +21,21 @@ class Compaction:
     max_data_files: int = settings.compaction.numOfFiles
     data_dir = settings.dataDirectory
 
+    def can_compact(self) -> bool:
+        index_files = glob.glob(f"{self.data_dir}/*.index")
+        return len(index_files) >= self.max_data_files
+            
     def compact(self):
         key_offset_map = dict()
         file_key_map = defaultdict(set)
         
         # list of index files
         index_files = glob.glob(f"{self.data_dir}/*.index")
-        if len(index_files) >= self.max_data_files:
-            logger.info("Files are more than the required limit, compaction can be done")
-            self.prepare_data(index_files=index_files, key_offset_map=key_offset_map, 
-                              file_key_map=file_key_map)
-            logger.info("Data is ready to be compacted")
-            self.create_compacted_files(file_key_map=file_key_map, key_offset_map=key_offset_map, index_files=index_files)
-            
+        self.prepare_data(index_files=index_files, key_offset_map=key_offset_map, 
+                            file_key_map=file_key_map)
+        logger.info("Data is ready to be compacted")
+        self.create_compacted_files(file_key_map=file_key_map, key_offset_map=key_offset_map, index_files=index_files)
+        
     def prepare_data(self, index_files, key_offset_map, file_key_map):
         """
         This function iterates through the index files and identify the keys that are
