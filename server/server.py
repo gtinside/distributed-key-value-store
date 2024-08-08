@@ -6,6 +6,7 @@ from loguru import logger
 import requests
 from lsmt.sstable import SSTable
 from scheduler.scheduler import Scheduler
+from exception.exceptions import NoDataFoundException
 
 class Server:
    def __init__(self, zk_host, zk_port, host, port) -> None:
@@ -52,7 +53,7 @@ class Server:
    
    def delete_data(self, key: str):
       data = self.get_data(key)
-      self.add_data(Data(key=data.key, value=data.value, deleted=True))
+      data.deleted = True
       
 
    def get_data(self, key) -> Data:
@@ -63,7 +64,7 @@ class Server:
       '''
       try:
          return self._cache.get_data(key)
-      except ValueError:
+      except NoDataFoundException:
          data = self._ss_table.get_data(key)
          self._cache.add(data)
          return data

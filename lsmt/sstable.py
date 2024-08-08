@@ -4,6 +4,7 @@ import glob
 import json
 from utils.model import Data
 from config import settings
+from exception.exceptions import NoDataFoundException
 
 
 @dataclass
@@ -24,7 +25,7 @@ class SSTable:
                         break
                     data_file_name = str(index_file).split(".")[0] + ".data"
                     return self.read_data_file(data_file_name, index_data[key]["start"], index_data[key]["end"])
-        raise ValueError(f"Data with key: {key} does not exist")
+        raise NoDataFoundException(f"Data with key: {key} does not exist")
     
 
     def read_data_file(self, data_file, start_offset, end_offset):

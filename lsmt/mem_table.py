@@ -2,6 +2,7 @@ from utils.model import Data
 from dataclasses import dataclass
 from config import settings
 from loguru import logger
+from exception.exceptions import NoDataFoundException
 import time
 import json
 
@@ -28,7 +29,7 @@ class MemTable:
     def get_data(self, key):
         if key in self._data_map and not self._data_map[key].deleted:
             return self._data_map[key]
-        raise ValueError("Key is not in Memtable")
+        raise NoDataFoundException("Key is not in Memtable")
     
     def can_flush(self) -> bool:
         return self.get_length() >= settings.memTable.numOfRecords
