@@ -105,7 +105,7 @@ class Compaction:
                                                         "deleted": key_offset_map[key]["deleted"]}
                         c_start_byte=c_end_byte
         # list of data files
-        data_files = [f"{self.data_dir}/{file}" for file in file_key_map.keys()]
+        data_files = file_key_map.keys()
 
         with open(compacted_index_file, 'w') as fp_compacted_index_file:
             logger.info("Writing index data to file: {}", compacted_index_file)

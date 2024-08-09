@@ -8,7 +8,7 @@ import json
 
 @dataclass
 class MemTable:
-    data_map: dict
+    data_map = dict()
 
     def add(self, data:Data):
         self.data_map[data.key] = data

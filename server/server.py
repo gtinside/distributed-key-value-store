@@ -16,7 +16,7 @@ class Server:
       self._port = port
       self._id_host_map = dict()
       self._consistent_hash = None
-      self._cache= MemTable(data_map=dict())
+      self._cache= MemTable()
       self._ss_table = SSTable()
       self._scheduler = Scheduler(cache=self._cache)
       self._scheduler.init()
