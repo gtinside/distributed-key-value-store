@@ -8,27 +8,27 @@ import json
 
 @dataclass
 class MemTable:
-    _data_map = dict()
+    data_map: dict
 
     def add(self, data:Data):
-        self._data_map[data.key] = data
+        self.data_map[data.key] = data
     
     def sort_by_key(self):
-        self._data_map = dict(sorted(self._data_map.items(), key = lambda item: item[0]))
+        self.data_map = dict(sorted(self.data_map.items(), key = lambda item: item[0]))
     
     def get_items(self):
         self.sort_by_key()
-        return self._data_map.items()
+        return self.data_map.items()
 
     def get_length(self):
-        return len(self._data_map)
+        return len(self.data_map)
     
     def clear_cache(self):
-        self._data_map.clear()
+        self.data_map.clear()
 
     def get_data(self, key):
-        if key in self._data_map and not self._data_map[key].deleted:
-            return self._data_map[key]
+        if key in self.data_map and not self.data_map[key].deleted:
+            return self.data_map[key]
         raise NoDataFoundException("Key is not in Memtable")
     
     def can_flush(self) -> bool:
