@@ -21,8 +21,6 @@ class SSTable:
                 if key in index_data:
                     logger.info("Found the {} in {}, starting at {} ending at {}", 
                                 key, index_file, index_data[key]["start"], index_data[key]["end"])
-                    if bool(index_data[key]["deleted"]):
-                        break
                     data_file_name = str(index_file).split(".")[0] + ".data"
                     return self.read_data_file(data_file_name, index_data[key]["start"], index_data[key]["end"])
         raise NoDataFoundException(f"Data with key: {key} does not exist")

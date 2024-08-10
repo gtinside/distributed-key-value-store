@@ -53,7 +53,7 @@ class Server:
    
    def delete_data(self, key: str):
       data = self.get_data(key)
-      data.deleted = True
+      self.add_data(Data(key = data.key, value = data.value, deleted=True))
       
 
    def get_data(self, key) -> Data:
@@ -62,12 +62,19 @@ class Server:
       If the data is not found in MemTable (cache), then its retrieved from SSTables.
       Cache is warmed post the retrieval from SSTable
       '''
+      data = None
       try:
-         return self._cache.get_data(key)
+         logger.info("Checking for {} in cache", key)
+         data = self._cache.get_data(key)
       except NoDataFoundException:
+         logger.info("Key {} not found in cache, checking in SSTable", key)
          data = self._ss_table.get_data(key)
-         self._cache.add(data)
-         return data
+      if data.deleted:
+         raise NoDataFoundException(f"Key {key} is missing")
+      return data
+         
+         
+
    
 ######################### Coordination and Discovery ###########################################
 
