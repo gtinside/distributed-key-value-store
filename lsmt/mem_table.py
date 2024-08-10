@@ -27,9 +27,9 @@ class MemTable:
         self.data_map.clear()
 
     def get_data(self, key):
-        if key in self.data_map and not self.data_map[key].deleted:
+        if key in self.data_map:
             return self.data_map[key]
-        raise NoDataFoundException("Key is not in Memtable")
+        raise NoDataFoundException(f"No data found for: {key}")
     
     def can_flush(self) -> bool:
         return self.get_length() >= settings.memTable.numOfRecords

@@ -52,6 +52,9 @@ class Compaction:
                 with open(index_file, 'r') as f_index_file:
                     index_data = json.load(f_index_file)
                     for key in index_data:
+                        # Key might have marked as deleted from prev index files
+                        if key in deleted_keys:
+                            continue
                         # Check for deletes
                         if bool(index_data[key]["deleted"]):
                             deleted_keys.add(key)
