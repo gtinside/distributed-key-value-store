@@ -7,6 +7,7 @@ import requests
 from lsmt.sstable import SSTable
 from scheduler.scheduler import Scheduler
 from exception.exceptions import NoDataFoundException
+import json
 
 class Server:
    def __init__(self, zk_host, zk_port, host, port) -> None:
@@ -29,23 +30,40 @@ class Server:
       self._consistent_hash = ConsistentHashingImpl()
       children = self.zk_connection.get_children("/election")
       for child in children:
-         data, stat = self.zk_connection.get(f"/election/{child}")
+         data, _ = self.zk_connection.get(f"/election/{child}")
          id = str(child).replace("n_", "")
          self._consistent_hash.add_node(str(id))
          self._id_host_map[id] = data.decode()
    
 
-   def send_put_req_to_follower(self, data: Data):
-      node_for_data = self._consistent_hash.get_node_for_data(data.key)
-      req = requests.post(f"http://{self._host}:{self._port}/admin/add", data = {data.key:data.value})
-      logger.info(f"Received the response {req.status_code}")
+   def send_add_req_to_follower(self, data: Data):
+      node_id = self._consistent_hash.get_node_for_data(data.key)
+      node_host_port = self._id_host_map[node_id]
+      logger.info(f"Sending the request to {node_host_port}")
+      req = requests.post(f"http://{node_host_port}/admin/add", 
+                          data = {"key":data.key, "value": data.value, "timestamp": data.timestamp, "deleted": data.deleted})
+      if req.status_code != 200:
+         raise ValueError(f"Error adding {data.key}")
+   
+   def send_get_req_to_follower(self, key: str):
+      node_id = self._consistent_hash.get_node_for_data(key)
+      node_host_port = self._id_host_map[node_id]
+      logger.info(f"Sending the request to {node_host_port}")
+      req = requests.post(f"http://{node_host_port}/admin/get", key=key) 
+      if req.status_code == 400:
+         raise NoDataFoundException(f"No data found for {key}")
+      elif req.status_cod == 500:
+         raise ValueError(f"Internal error, not able to find the data for {key}")
+      return req.json()
+
    
    def send_del_req_to_follower(self, key: str):
-      node_for_data = self._consistent_hash.get_node_for_data(key)
-      req = requests.post(f"http://{self._host}:{self._port}/admin/delete", key = key)
+      node_id = self._consistent_hash.get_node_for_data(key)
+      node_host_port = self._id_host_map[node_id]
+      logger.info(f"Sending the request to {node_host_port}")
+      req = requests.post(f"http://{node_host_port}/admin/delete", key = key)
       logger.info(f"Received the response {req.status_code}")
-
-
+   
 ####################################### Data Node Functions ########################################
    
    def add_data(self, data: Data):
@@ -91,6 +109,9 @@ class Server:
       if ids[0] == self.identifier:
          return True
       return False
+   
+   def get_all_nodes(self):
+      return self.zk_connection.get_children("/election")
 
 ############################ The beginning #######################################################
 

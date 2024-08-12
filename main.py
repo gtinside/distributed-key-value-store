@@ -14,26 +14,46 @@ port_range = [settings.ports.startPort, settings.ports.endPort]
 app = FastAPI()
 
 
-@app.post("/add/")
-async def create(data: Data):
-    try:
-        logger.info(f"{server_instance.add_data(data)} will be responsible for this data")
-        return data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f'Error adding the data due to {str(e)}')
-
-
 @app.post("/admin/add/")
-async def admin_add(data: Data):
+async def add_request_from_leader(data: Data):
     try:
         logger.info(f"Received a request from the leader to add data for {data.key}")
-        server_instance.add_data(data)
+        server_instance.send_add_req_to_follower(data)
         return {"Status": "Completed"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Error adding the data due to {str(e)}')
 
+@app.post("/admin/delete")
+async def delete_request_from_leader(key: str):
+    try:
+        logger.info(f"Received a request from leader to delete data for key: {key}")
+        server_instance.delete_data(key)
+        return {"Status": "Completed"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Error deleting the data due to {str(e)}')
+
+@app.post("/admin/get")
+async def get_request_from_leader(key: str):
+    try:
+        logger.info(f"Received a request for leader for retrieving data for key: {key}")
+        return server_instance.send_get_req_to_follower(key)
+    except NoDataFoundException:
+        raise HTTPException(status_code=404, detail=f'No data found')
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Error getting the data due to {str(e)}')
+
+# The following functions will work only when node is a leader or only one node is running 
+@app.post("/add/")
+async def add(data: Data):
+    try:
+        logger.info(f"Received request for add {data.key}")
+        server_instance.send_add_req_to_follower(data)
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Error adding the data due to {str(e)}')
+    
 @app.get("/get/")
-async def get_data(key: str):
+async def get(key: str):
     try:
         logger.info(f"Received a request for retrieving data for key: {key}")
         return server_instance.get_data(key)
@@ -42,14 +62,15 @@ async def get_data(key: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Error getting the data due to {str(e)}')
 
-@app.post("/admin/delete")
-async def delete_data(key: str):
+@app.post("/delete/")
+async def delete(key: str):
     try:
-        logger.info(f"Received a request from master to delete data for key: {key}")
+        logger.info(f"Received a request for deleting data: {key}")
         server_instance.delete_data(key)
         return {"Status": "Completed"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Error deleting the data due to {str(e)}')
+
     
 if __name__ == "__main__":
     port = random.randint(port_range[0], port_range[1])
