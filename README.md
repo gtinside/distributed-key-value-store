@@ -1,5 +1,5 @@
 # distributed-key-value-store
-A distributed messaging platform written in python
+A distributed key-value store written in python
 
 ## MVP
 1. Leader election and coordination via ZooKeeper

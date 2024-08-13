@@ -4,7 +4,7 @@ zooKeeper:
 ports:
   startPort: 8000 # starting port range
   endPort: 9000 # ending port range
-dataDirectory: "/tmp" # directory where .data and .index files will be stored
+dataDirectory: "/tmp/tmp" # directory where .data and .index files will be stored
 memTable:
   schedule: 60 # Time in seconds to check if Memtable can be flushed to SSTable
   numOfRecords: 4 # Number of records to check if Memtable can be flushed
