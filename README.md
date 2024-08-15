@@ -18,6 +18,7 @@ A distributed key-value store written in python
 ## Dependencies
 1. Kazoo - lib for dealing with ZooKeeper
 2. dynaconf - For managing python dependencies
+3. Colima - Not a direct dependency, but recommended for local development instead of docker
 
 
 ## Running this locally

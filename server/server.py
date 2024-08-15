@@ -36,12 +36,17 @@ class Server:
          self._id_host_map[id] = data.decode()
    
 
+   def get_data_node(self, key: str):
+      node_id = self._consistent_hash.get_node_for_data(key)
+      node_host_port = self._id_host_map[node_id]
+      logger.info(f"Data Node is {node_host_port}")
+
    def send_add_req_to_follower(self, data: Data):
       node_id = self._consistent_hash.get_node_for_data(data.key)
       node_host_port = self._id_host_map[node_id]
       logger.info(f"Sending the request to {node_host_port}")
       req = requests.post(f"http://{node_host_port}/admin/add", 
-                          data = {"key":data.key, "value": data.value, "timestamp": data.timestamp, "deleted": data.deleted})
+                          json = {"key":data.key, "value": data.value, "timestamp": data.timestamp, "deleted": data.deleted})
       if req.status_code != 200:
          raise ValueError(f"Error adding {data.key}")
    
@@ -67,7 +72,7 @@ class Server:
 ####################################### Data Node Functions ########################################
    
    def add_data(self, data: Data):
-      self._cache.add(data)
+      return self._cache.add(data)
    
    def delete_data(self, key: str):
       data = self.get_data(key)

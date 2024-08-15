@@ -12,6 +12,7 @@ class MemTable:
 
     def add(self, data:Data):
         self.data_map[data.key] = data
+        return data
     
     def sort_by_key(self):
         self.data_map = dict(sorted(self.data_map.items(), key = lambda item: item[0]))
