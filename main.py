@@ -16,7 +16,7 @@ app = FastAPI()
 
 
 @app.post("/add/")
-def add(data: Data):
+def add(data: Data, token:str = None):
     try:
         logger.info(f"Received request for add {data.key}")
         if server_instance.check_if_leader():
@@ -24,39 +24,63 @@ def add(data: Data):
             if f"{server_instance._host}:{server_instance._port}" == data_node_host_port:
                 return server_instance.add_data(data)
             else:
-                req = requests.post(f"http://{data_node_host_port}/add", 
+                req = requests.post(f"http://{data_node_host_port}/add?token=leader", 
                           json = {"key":data.key, "value": data.value, "timestamp": data.timestamp, "deleted": data.deleted})
                 if req.status_code != 200:
-                    raise HTTPException(f"Error adding {data.key}")
+                    raise HTTPException(f"Error adding key: {data.key}")
                 return req.json()
-                
-        
-        raise UnauthorizedRequestException()
+        elif token:
+            logger.info(f"Add data request from the leader for key: {data.key}")
+            return server_instance.add_data(data)
+        else:
+            raise UnauthorizedRequestException(f'ADD requests can only be sent to the leader')
     except HTTPException as e:
         raise HTTPException(status_code=500, detail=f'Error adding the data due to {str(e)}')
-    except UnauthorizedRequestException as ae:
-        raise HTTPException(status_code=401, detail=f'ADD requests can only be sent to leader')
+    except Exception as ae:
+        raise HTTPException(status_code=500, detail=f'Error getting the data due to {str(e)}')
     
     
 @app.get("/get/")
-def get(key: str):
+def get(key: str, token:str = None):
     try:
         logger.info(f"Received a request for retrieving data for key: {key}")
-        return server_instance.get_data(key)
+        if server_instance.check_if_leader():
+            data_node_host_port = server_instance.get_data_node(key)
+            if f"{server_instance._host}:{server_instance._port}" == data_node_host_port:
+                return server_instance.get_data(key)
+            else:
+                req = requests.post(f"http://{data_node_host_port}/get?token=leader", json = {"key":key})
+                if req.status_code != 200:
+                    raise HTTPException(f"Error adding key: {key}")
+                return req.json()
+        elif token:
+            return server_instance.get_data(key)
+        else:
+            raise UnauthorizedRequestException()
     except NoDataFoundException:
         raise HTTPException(status_code=404, detail=f'No data found')
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Error getting the data due to {str(e)}')
 
 @app.post("/delete/")
-def delete(key: str):
+def delete(key: str, token:str = None):
     try:
-        logger.info(f"Received a request for deleting data: {key}")
-        server_instance.delete_data(key)
-        return {"Status": "Completed"}
+        logger.info(f"Received a request for deleting data for key: {key}")
+        if server_instance.check_if_leader():
+            data_node_host_port = server_instance.get_data_node(key)
+            if f"{server_instance._host}:{server_instance._port}" == data_node_host_port:
+                return server_instance.delete_data(key)
+            else:
+                req = requests.post(f"http://{data_node_host_port}/delete?token=leader", json = {"key":key})
+                if req.status_code != 200:
+                    raise HTTPException(f"Error adding key: {key}")
+                return req.json()
+        elif token:
+            return server_instance.delete_data(key)
+        else:
+            raise UnauthorizedRequestException()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Error deleting the data due to {str(e)}')
-
     
 if __name__ == "__main__":
     port = random.randint(port_range[0], port_range[1])
