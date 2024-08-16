@@ -16,30 +16,19 @@ class Server:
       self._host = host
       self._port = port
       self._id_host_map = dict()
-      self._consistent_hash = None
+      self._consistent_hash = ConsistentHashingImpl()
       self._cache= MemTable()
       self._ss_table = SSTable()
       self._scheduler = Scheduler(cache=self._cache)
-      self._scheduler.init()
+      #self._scheduler.init()
       
    
 ################################ Leader Node Functions ########################################
-   def init_leader(self):
-      logger.info(f"I - {self.identifier} have been chosen as the leader, doing the setup")
-      # Step 1: Initialize a consistent hash ring
-      self._consistent_hash = ConsistentHashingImpl()
-      children = self.zk_connection.get_children("/election")
-      for child in children:
-         data, _ = self.zk_connection.get(f"/election/{child}")
-         id = str(child).replace("n_", "")
-         self._consistent_hash.add_node(str(id))
-         self._id_host_map[id] = data.decode()
-   
-
    def get_data_node(self, key: str):
       node_id = self._consistent_hash.get_node_for_data(key)
       node_host_port = self._id_host_map[node_id]
       logger.info(f"Data Node is {node_host_port}")
+      return node_host_port
 
    def send_add_req_to_follower(self, data: Data):
       node_id = self._consistent_hash.get_node_for_data(data.key)
@@ -102,10 +91,17 @@ class Server:
 ######################### Coordination and Discovery ###########################################
 
    def watch_for_child_nodes(self, event):
-      logger.info("Looks like children changed")
-      if self.check_if_leader():
-         logger.info("I am the leader, initializing the setup")
-         self.init_leader()
+      logger.info(f"Looks like children changed, event received is {event.state}")
+      if event.state == 'CONNECTED' and self.check_if_leader():
+         logger.info("A new follower has been added")
+         children = self.zk_connection.get_children("/election")
+         for child in children:
+            data, _ = self.zk_connection.get(f"/election/{child}")
+            id = str(child).replace("n_", "")
+            if id not in self._id_host_map:
+               self._consistent_hash.add_node(str(id))
+               self._id_host_map[id] = data.decode()
+   
 
    def check_if_leader(self):
       children = self.zk_connection.get_children("/election")
