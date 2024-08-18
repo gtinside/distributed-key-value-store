@@ -27,7 +27,7 @@ def add(data: Data, token:str = None):
                 req = requests.post(f"http://{data_node_host_port}/add?token=leader", 
                           json = {"key":data.key, "value": data.value, "timestamp": data.timestamp, "deleted": data.deleted})
                 if req.status_code != 200:
-                    raise HTTPException(f"Error adding key: {data.key}")
+                    raise HTTPException(f"{req.reason}")
                 return req.json()
         elif token:
             logger.info(f"Add data request from the leader for key: {data.key}")
@@ -49,9 +49,9 @@ def get(key: str, token:str = None):
             if f"{server_instance._host}:{server_instance._port}" == data_node_host_port:
                 return server_instance.get_data(key)
             else:
-                req = requests.post(f"http://{data_node_host_port}/get?token=leader", json = {"key":key})
+                req = requests.get(f"http://{data_node_host_port}/get?token=leader", params = {"key":key})
                 if req.status_code != 200:
-                    raise HTTPException(f"Error adding key: {key}")
+                    raise HTTPException(f"{req.reason}")
                 return req.json()
         elif token:
             return server_instance.get_data(key)
@@ -71,9 +71,9 @@ def delete(key: str, token:str = None):
             if f"{server_instance._host}:{server_instance._port}" == data_node_host_port:
                 return server_instance.delete_data(key)
             else:
-                req = requests.post(f"http://{data_node_host_port}/delete?token=leader", json = {"key":key})
+                req = requests.post(f"http://{data_node_host_port}/delete?token=leader", params = {"key":key})
                 if req.status_code != 200:
-                    raise HTTPException(f"Error adding key: {key}")
+                    raise HTTPException(f"{req.reason}")
                 return req.json()
         elif token:
             return server_instance.delete_data(key)
