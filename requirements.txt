@@ -6,3 +6,4 @@ apscheduler
 loguru
 dynaconf
 uvicorn
+pytest

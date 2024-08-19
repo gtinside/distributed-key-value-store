@@ -3,11 +3,9 @@ from kazoo.client import KazooClient
 from impl.consistent_hashing import ConsistentHashingImpl
 from lsmt.mem_table import MemTable
 from loguru import logger
-import requests
 from lsmt.sstable import SSTable
 from scheduler.scheduler import Scheduler
 from exception.exceptions import NoDataFoundException
-import json
 
 class Server:
    def __init__(self, zk_host, zk_port, host, port) -> None:
@@ -20,44 +18,17 @@ class Server:
       self._cache= MemTable()
       self._ss_table = SSTable()
       self._scheduler = Scheduler(cache=self._cache)
-      #self._scheduler.init()
-      
-   
-################################ Leader Node Functions ########################################
+      self._scheduler.init()
+
+
    def get_data_node(self, key: str):
+      """
+      Function that leverages the consistent hash lib to determine which node should host the data
+      """
       node_id = self._consistent_hash.get_node_for_data(key)
       node_host_port = self._id_host_map[node_id]
       logger.info(f"Data Node is {node_host_port}")
-      return node_host_port
-
-   def send_add_req_to_follower(self, data: Data):
-      node_id = self._consistent_hash.get_node_for_data(data.key)
-      node_host_port = self._id_host_map[node_id]
-      logger.info(f"Sending the request to {node_host_port}")
-      req = requests.post(f"http://{node_host_port}/admin/add", 
-                          json = {"key":data.key, "value": data.value, "timestamp": data.timestamp, "deleted": data.deleted})
-      if req.status_code != 200:
-         raise ValueError(f"Error adding {data.key}")
-   
-   def send_get_req_to_follower(self, key: str):
-      node_id = self._consistent_hash.get_node_for_data(key)
-      node_host_port = self._id_host_map[node_id]
-      logger.info(f"Sending the request to {node_host_port}")
-      req = requests.post(f"http://{node_host_port}/admin/get", key=key) 
-      if req.status_code == 400:
-         raise NoDataFoundException(f"No data found for {key}")
-      elif req.status_cod == 500:
-         raise ValueError(f"Internal error, not able to find the data for {key}")
-      return req.json()
-
-   
-   def send_del_req_to_follower(self, key: str):
-      node_id = self._consistent_hash.get_node_for_data(key)
-      node_host_port = self._id_host_map[node_id]
-      logger.info(f"Sending the request to {node_host_port}")
-      req = requests.post(f"http://{node_host_port}/admin/delete", key = key)
-      logger.info(f"Received the response {req.status_code}")
-   
+      return node_host_port   
 ####################################### Data Node Functions ########################################
    
    def add_data(self, data: Data):
@@ -66,14 +37,8 @@ class Server:
    def delete_data(self, key: str):
       data = self.get_data(key)
       self.add_data(Data(key = data.key, value = data.value, deleted=True))
-      
 
    def get_data(self, key) -> Data:
-      '''
-      This function is primarily for retrieving the data from local MemTable of a node
-      If the data is not found in MemTable (cache), then its retrieved from SSTables.
-      Cache is warmed post the retrieval from SSTable
-      '''
       data = None
       try:
          logger.info("Checking for {} in cache", key)
@@ -84,10 +49,7 @@ class Server:
       if data.deleted:
          raise NoDataFoundException(f"Key {key} is missing")
       return data
-         
-         
-
-   
+            
 ######################### Coordination and Discovery ###########################################
 
    def watch_for_child_nodes(self, event):
@@ -127,24 +89,3 @@ class Server:
          if child:
             self.identifier = int(str(child).replace("/election/n_", ""))
             self.zk_connection.get_children("/election", watch=self.watch_for_child_nodes)
-   
-
-      
-   
-
-
-
-      
-   
-
-      
-
-
-   
-
-
-
-
-
-
-
