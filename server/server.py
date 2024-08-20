@@ -57,9 +57,12 @@ class Server:
       if event.state == 'CONNECTED' and self.check_if_leader():
          logger.info("A new follower has been added")
          children = self.zk_connection.get_children("/election")
+         logger.info(f"Entries found for child: {children}")
          for child in children:
             data, _ = self.zk_connection.get(f"/election/{child}")
             id = str(child).replace("n_", "")
+            logger.info(f"Data associated with the child {data} and id is {id}")
+            
             if id not in self._id_host_map:
                self._consistent_hash.add_node(str(id))
                self._id_host_map[id] = data.decode()
