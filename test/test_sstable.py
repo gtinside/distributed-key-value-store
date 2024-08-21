@@ -22,5 +22,3 @@ def test_get_data(mock_open, mock_glob, mock_json, mock_read_data_file, sstable)
     assert isinstance(result, MagicMock)
 
 
-
-
