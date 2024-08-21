@@ -19,7 +19,7 @@ class Compaction:
         c) Rename the existing index and files
     '''
     max_data_files: int = settings.compaction.numOfFiles
-    data_dir = settings.dataDirectory
+    data_dir:str = settings.dataDirectory
 
     def can_compact(self) -> bool:
         index_files = glob.glob(f"{self.data_dir}/*.index")
@@ -49,9 +49,12 @@ class Compaction:
         """
         deleted_keys = set()
         for index_file in index_files:
+                logger.info("Working on file: {}", index_file)
                 with open(index_file, 'r') as f_index_file:
+                    logger.info("Working on file: {}", f_index_file)
                     index_data = json.load(f_index_file)
                     for key in index_data:
+                        logger.info("Working on key: {}, for file: {}", key, f_index_file)
                         # Key might have marked as deleted from prev index files
                         if key in deleted_keys:
                             continue
