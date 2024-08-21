@@ -53,6 +53,7 @@ class MemTable:
                 end_byte+=len(data)
                 index_data[key] = {"start":start_byte, "end": end_byte, "timestamp": user_data.timestamp, "deleted": user_data.deleted}
                 start_byte = end_byte
+                logger.info("Adding key: {} to the data file: {}", key, data_file_name)
                 data_file.write(data)
             with open(index_file_name, 'w') as index_file:
                 json.dump(index_data, index_file)

@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from compaction.compaction import Compaction
 from collections import defaultdict
 
@@ -14,12 +14,12 @@ def test_can_compact(mock_glob, compaction):
     assert compaction.can_compact() == True
 
 @patch('json.load')
-@patch('builtins.open', read_data={"name": {"key": "name", "value": "somename", "timestamp": 123456, "deleted": "False"}})
-def test_prepare_data(mock_json_load, compaction):
+@patch('builtins.open')
+def test_prepare_data(mock_open, mock_json_load, compaction):
     index_files = ['file1.index', 'file2.index']
     key_offset_map = dict()
     file_key_map = defaultdict(set)
-    mock_json_load.return_value = {"name": {"key": "name", "value": "somename", "timestamp": 123456, "deleted": "False"}}
+    mock_json_load.return_value = {"name": {"key": "name", "value": "somename", "timestamp": 123456, "deleted": False}}
     compaction.prepare_data(index_files=index_files, file_key_map=file_key_map, 
                             key_offset_map=key_offset_map)
     assert len(key_offset_map) != 0
