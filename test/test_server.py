@@ -12,7 +12,6 @@ from utils.model import Data
 @pytest.fixture(scope='session')
 def server():
     with patch('kazoo.client.KazooClient') as MockKazooClient:
-        mock_zk_client = MockKazooClient.return_value
         # Return a single instance of the Server object
         yield Server(zk_host='localhost', zk_port=2181, host='localhost', port=8000)
 
