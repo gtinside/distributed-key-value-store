@@ -51,7 +51,6 @@ class Compaction:
         for index_file in index_files:
                 logger.info("Working on file: {}", index_file)
                 with open(index_file, 'r') as f_index_file:
-                    logger.info("Working on file: {}", f_index_file)
                     index_data = json.load(f_index_file)
                     for key in index_data:
                         logger.info("Working on key: {}, for file: {}", key, f_index_file)
@@ -60,6 +59,7 @@ class Compaction:
                             continue
                         # Check for deletes
                         if bool(index_data[key]["deleted"]):
+                            logger.info("Key:{} in file: {} is marked as deleted", key, index_file)
                             deleted_keys.add(key)
                         # Check for updates first
                         elif key in key_offset_map:
@@ -69,6 +69,7 @@ class Compaction:
                         else:
                             key_offset_map[key] = index_data[key]
                             file_key_map[f"{index_file.split('.')[0]}.data"].add(key)
+                            logger.info("Added key: {} from file: {}", key, index_file)
         
         # One more pass to get rid of deleted keys from the file
         for deleted_key in deleted_keys:
