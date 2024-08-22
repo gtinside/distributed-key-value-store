@@ -23,5 +23,8 @@ def test_prepare_data(mock_open, mock_json_load, compaction):
     compaction.prepare_data(index_files=index_files, file_key_map=file_key_map, 
                             key_offset_map=key_offset_map)
     assert len(key_offset_map) != 0
+
+def test_create_compacted_files(compaction):
+    
     
 
