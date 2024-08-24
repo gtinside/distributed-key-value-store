@@ -82,7 +82,7 @@ def delete(key: str, token:str = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Error deleting the data due to {str(e)}')
     
-if __name__ == "__main__":
+if __name__ == "__main__":                                                                                                                                                                         
     port = random.randint(port_range[0], port_range[1])
     server_instance = Server(zk_host=settings.zooKeeper.host, zk_port=settings.zooKeeper.port, 
                              host="127.0.0.1", port=port)
