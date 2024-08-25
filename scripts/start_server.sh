@@ -47,12 +47,9 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
-ZOOKEEPER_HOST=$1
-ZOOKEEPER_PORT=$2
-
 # Run the main.py with the provided arguments
-echo "Starting CoreCache with ZooKeeper host: $ZOOKEEPER_HOST and port: $ZOOKEEPER_PORT"
-python main.py --zkHost "$ZOOKEEPER_HOST" --zkPort "$ZOOKEEPER_PORT"
+echo "Starting CoreCache"
+python main.py
 
 # Deactivate virtual environment after script execution
 deactivate
