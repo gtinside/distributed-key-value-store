@@ -1,8 +1,9 @@
 name: Create Release
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - '**'
 
 jobs:
   create-release:
@@ -28,21 +29,19 @@ jobs:
 
     - name: Create tarball
       run: |
-        TAG_NAME=${{ github.ref }}
-        TAG_NAME=${TAG_NAME#refs/tags/}
+        TAG_NAME=${{ github.ref_name }}
         TAR_NAME="${TAG_NAME}.tar.gz"
         echo "Creating tarball: $TAR_NAME"
         tar -czf "$TAR_NAME" .
 
     - name: Create release
-      uses: gh-action-release@v1
+      uses: actions/create-release@v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
         body: |
-          Auto-generated release notes for tag ${{ github.ref }}.
+          Auto-generated release notes for tag ${{ github.ref_name }}.
         files: |
           ${{ github.workspace }}/*.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
