@@ -32,7 +32,16 @@ jobs:
         TAG_NAME=${{ github.ref_name }}
         TAR_NAME="${TAG_NAME}.tar.gz"
         echo "Creating tarball: $TAR_NAME"
-        tar -czf "$TAR_NAME" .
+        
+        # Use a temporary directory for tarball creation
+        TMP_DIR=$(mktemp -d)
+        cp -r * "$TMP_DIR/"
+        
+        # Create tarball from the temporary directory
+        tar -czf "$TAR_NAME" -C "$TMP_DIR" .
+        
+        # Clean up temporary directory
+        rm -rf "$TMP_DIR"
 
     - name: Create release
       uses: actions/create-release@v1
