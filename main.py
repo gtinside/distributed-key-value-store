@@ -10,6 +10,9 @@ from config import settings
 from exception.exceptions import NoDataFoundException, UnauthorizedRequestException
 import requests
 import getopt, sys
+from setproctitle import setproctitle
+
+setproctitle('CoreCache')
 
 server_instance = None
 port_range = [settings.ports.startPort, settings.ports.endPort]

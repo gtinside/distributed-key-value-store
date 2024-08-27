@@ -7,3 +7,4 @@ loguru
 dynaconf
 uvicorn
 pytest
+setproctitle
