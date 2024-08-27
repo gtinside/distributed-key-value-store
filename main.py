@@ -9,6 +9,7 @@ import random
 from config import settings
 from exception.exceptions import NoDataFoundException, UnauthorizedRequestException
 import requests
+import getopt, sys
 
 server_instance = None
 port_range = [settings.ports.startPort, settings.ports.endPort]
@@ -82,13 +83,31 @@ def delete(key: str, token:str = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Error deleting the data due to {str(e)}')
     
-if __name__ == "__main__":                                                                                                                                                                         
-    port = random.randint(port_range[0], port_range[1])
-    server_instance = Server(zk_host=settings.zooKeeper.host, zk_port=settings.zooKeeper.port, 
-                             host="127.0.0.1", port=port)
-    server_instance.start()
-    logger.info(f"This server will run on port: {port}")
-    uvicorn.run(app, host="127.0.0.1", port=port)
+if __name__ == "__main__":                                                                                                                                                                      
+    try:
+        all_args = sys.argv
+        long_options = ["zooKeeperHost=", "zooKeeperPort="]
+        short_options = ["h:", "p:"]
+       
+        arguments, values = getopt.getopt(args=all_args[1:], longopts=long_options, shortopts=short_options)
+       
+        zk_host, zk_port = settings.zooKeeper.host, settings.zooKeeper.port
+       
+        for current_argument, current_value in arguments:
+            if current_argument in ("-h", "--zooKeeperHost"):
+                zk_host = current_value
+            elif current_argument in ("-p", "--zooKeeperPort"):
+                zk_port = current_value
+        
+        port = random.randint(port_range[0], port_range[1])
+        server_instance = Server(zk_host=zk_host, zk_port=zk_port, 
+                                host="127.0.0.1", port=port)
+        server_instance.start()
+        logger.info(f"This server will run on port: {port}, zookeeper host:{zk_host}, zookeeper port: {zk_port}")
+        uvicorn.run(app, host="127.0.0.1", port=port)
+    except Exception as e:
+        logger.error(str(e))
+        sys.exit(2)
 
 
 

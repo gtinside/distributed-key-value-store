@@ -39,17 +39,40 @@ echo "Activating virtual environment..."
 source "$VENV_DIR/bin/activate"
 
 echo "Installing dependencies..."
-pip install -r requirements.txt
+pip install -r ../requirements.txt
 
 # Check if both arguments are provided
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <zooKeeperHost> <zooKeeperPort>"
+if [ "$#" -ne 4 ]; then
+    echo "Usage: $0 --zooKeeperHost <zooKeeperHost> --zooKeeperPort <zooKeeperPort>"
+    exit 1
+fi
+
+# Extract arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --zooKeeperHost)
+            zooKeeperHost="$2"
+            shift # past argument
+            shift # past value
+            ;;
+        --zooKeeperPort)
+            zooKeeperPort="$2"
+            shift # past argument
+            shift # past value
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
+
+# Check if the required arguments are set
+if [ -z "$zooKeeperHost" ] || [ -z "$zooKeeperPort" ]; then
+    echo "Both --zooKeeperHost and --zooKeeperPort must be provided."
     exit 1
 fi
 
 # Run the main.py with the provided arguments
-echo "Starting CoreCache"
-python main.py
-
-# Deactivate virtual environment after script execution
-deactivate
+echo "Starting CoreCache with ZooKeeper host $zooKeeperHost and port $zooKeeperPort"
+python ../main.py --zooKeeperHost "$zooKeeperHost" --zooKeeperPort "$zooKeeperPort"
