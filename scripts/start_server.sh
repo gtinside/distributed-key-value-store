@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Define log and PID directory
+LOG_DIR="logs"
+PID_FILE="$LOG_DIR/corecache.pid"
+LOG_FILE="$LOG_DIR/corecache.log"
+
+# Create log directory if it doesn't exist
+if [ ! -d "$LOG_DIR" ]; then
+    echo "Creating log directory..."
+    mkdir -p "$LOG_DIR"
+fi
+
 # Check if process by name CoreCache is running
 if pgrep -f "CoreCache" > /dev/null; then
     echo "Process 'CoreCache' is already running. Exiting."
@@ -73,6 +84,9 @@ if [ -z "$zooKeeperHost" ] || [ -z "$zooKeeperPort" ]; then
     exit 1
 fi
 
-# Run the main.py with the provided arguments
+# Run the main.py script in the background
 echo "Starting CoreCache with ZooKeeper host $zooKeeperHost and port $zooKeeperPort"
-python ../main.py --zooKeeperHost "$zooKeeperHost" --zooKeeperPort "$zooKeeperPort"
+nohup python ../main.py --zooKeeperHost "$zooKeeperHost" --zooKeeperPort "$zooKeeperPort" > "$LOG_FILE" 2>&1 &
+
+# Save the PID of the background process
+echo $! > "$PID_FILE"
