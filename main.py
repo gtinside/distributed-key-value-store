@@ -2,7 +2,6 @@ from fastapi import FastAPI, HTTPException
 from server.server import Server
 from contextlib import asynccontextmanager
 from utils.model import Data
-import socket
 from loguru import logger
 import uvicorn
 import random
@@ -12,10 +11,12 @@ import requests
 import getopt, sys
 from setproctitle import setproctitle
 
+
 setproctitle('CoreCache')
 
 server_instance = None
-port_range = [settings.ports.startPort, settings.ports.endPort]
+server_ip = settings.server.ip
+port_range = [settings.server.startPort, settings.server.endPort]
 app = FastAPI()
 
 
@@ -104,10 +105,10 @@ if __name__ == "__main__":
         
         port = random.randint(port_range[0], port_range[1])
         server_instance = Server(zk_host=zk_host, zk_port=zk_port, 
-                                host="127.0.0.1", port=port)
+                                host=server_ip, port=port)
         server_instance.start()
-        logger.info(f"This server will run on port: {port}, zookeeper host:{zk_host}, zookeeper port: {zk_port}")
-        uvicorn.run(app, host="127.0.0.1", port=port)
+        logger.info(f"This server will run on host: {server_ip}, port: {port}, zookeeper host:{zk_host}, zookeeper port: {zk_port}")
+        uvicorn.run(app, host=server_ip, port=port)
     except Exception as e:
         logger.error(str(e))
         sys.exit(2)
