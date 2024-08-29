@@ -1,5 +1,5 @@
-# distributed-key-value-store
-A distributed key-value store written in python
+# CoreCache
+A distributed key-value store
 
 ## MVP
 1. Leader election and coordination via ZooKeeper
@@ -30,6 +30,16 @@ docker run --name some-zookeeper -p 2181:2181 --restart always -d zookeeper
 ```
 docker run -it --rm --link some-zookeeper:zookeeper zookeeper zkCli.sh -server zookeeper
 ```
+
+## Deploying CoreCache
+1. Make sure python and pip are installed
+2. ```curl -L -o corecache-0.09.tar.gz https://github.com/gtinside/distributed-key-value-store/archive/refs/tags/0.09.tar.gz```
+
+3. ```tar -xvzf corecache-0.09.tar.gz```
+4. Run ZooKeeper
+5. ```cd distributed-key-value-store-0.09/scripts```
+6. ```start_server.sh --zooKeeperHost localhost --zooKeeperPort 2181`
+
 
 ## Limitations
 - Race condition, if the data is getting inserted into cache and cache becomes qualified for a flush to SSTable. 

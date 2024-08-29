@@ -166,3 +166,7 @@ cython_debug/
 # Ignore dynaconf secret files
 .secrets.*
 *.pid
+*.terraform
+terraform.*
+*.pem
+*.lock.*
