@@ -1,7 +1,8 @@
 # CoreCache
 A distributed key-value store
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/gtinside/distributed-key-value-store/validate.yaml?style=plastic&label=Unit%20Tests) ![GitHub Release](https://img.shields.io/github/v/release/gtinside/distributed-key-value-store?style=plastic&color=red) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/gtinside/distributed-key-value-store?style=plastic) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr-closed/gtinside/distributed-key-value-store?style=plastic&color=blue)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/gtinside/distributed-key-value-store/validate.yaml?style=plastic&label=Unit%20Tests) ![GitHub Release](https://img.shields.io/github/v/release/gtinside/distributed-key-value-store?style=plastic&color=red) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/gtinside/distributed-key-value-store?style=plastic) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr-closed/gtinside/distributed-key-value-store?style=plastic&color=blue) ![GitHub License](https://img.shields.io/github/license/gtinside/distributed-key-value-store?style=plastic)
+
 
 
 ## MVP
