@@ -1,7 +1,7 @@
 # CoreCache
 A distributed key-value store
 
-[![Python Tests](https://github.com/gtinside/distributed-key-value-store/actions/workflows/validate.yaml/badge.svg?branch=main)](https://github.com/gtinside/distributed-key-value-store/actions/workflows/validate.yaml)
+[![Python Tests](https://github.com/gtinside/distributed-key-value-store/actions/workflows/validate.yaml/badge.svg?branch=main)](https://github.com/gtinside/distributed-key-value-store/actions/workflows/validate.yaml) ![GitHub Release](https://img.shields.io/github/v/release/gtinside/distributed-key-value-store?style=plastic&color=red) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/gtinside/distributed-key-value-store?style=plastic)
 
 ## MVP
 1. Leader election and coordination via ZooKeeper
