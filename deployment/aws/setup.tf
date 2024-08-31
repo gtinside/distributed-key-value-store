@@ -90,6 +90,9 @@ resource "aws_instance" "core_cache" {
               sudo yum install -y docker
               sudo service docker start
               sudo systemctl enable docker
+              
+              # Set environment variable for Dynaconf
+              echo 'ENV_FOR_DYNACONF=production' | sudo tee -a /etc/environment
               EOF
 
   tags = {
