@@ -86,6 +86,7 @@ resource "aws_instance" "core_cache" {
               #!/bin/bash
               sudo yum update -y
               sudo yum install -y python3.11
+              sudo python3 -m ensurepip --upgrade
               sudo yum install -y docker
               sudo service docker start
               sudo systemctl enable docker
