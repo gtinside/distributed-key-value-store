@@ -1,21 +1,23 @@
-development:
-  server:
-    ip: "127.0.0.1" # Server IP address (should be a string)
-production:
-  server:
-    ip: "0.0.0.0" # Overriding the IP for production
 default:
   zooKeeper:
-      host: "localhost" # ZooKeeper host
-      port: 2181 # ZooKeeper port (changed to integer)
+    host: "localhost" # ZooKeeper host
+    port: 2181 # ZooKeeper port
   server:
-      startPort: 8000 # Starting port range
-      endPort: 9000 # Ending port range
-  dataDirectory: "/tmp" # Directory where .data and .index files will be stored
+    ip: "127.0.0.1"
+    startPort: 8000 # Starting port range
+    endPort: 9000 # Ending port range
+  dataDirectory: "/tmp" # Directory for data files
   memTable:
-    schedule: 60 # Time in seconds to check if Memtable can be flushed to SSTable
-    numOfRecords: 4 # Number of records to check if Memtable can be flushed
+    schedule: 60 # Memtable flush schedule
+    numOfRecords: 4 # Number of records for flush
   compaction:
-    schedule: 60 # Time in seconds to check if SSTable needs to be compacted
-    numOfFiles: 2 # Compact if number of data files >= numOfFiles
+    schedule: 60 # SSTable compaction schedule
+    numOfFiles: 2 # Number of files for compaction
+
+production:
+  server:
+    ip: "0.0.0.0" # Server IP address for production
+    startPort: 8000 # Starting port range
+    endPort: 9000 # Ending port range
+
 
