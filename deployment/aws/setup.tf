@@ -28,6 +28,14 @@ resource "aws_security_group" "web_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "tcp"
+    security_groups = [aws_security_group.web_sg.id]
+    description = "Allow all traffic from instances in the same security group"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
