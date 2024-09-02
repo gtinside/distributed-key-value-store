@@ -32,8 +32,24 @@ resource "aws_security_group" "web_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "tcp"
-    security_groups = [aws_security_group.web_sg.id]
-    description = "Allow all traffic from instances in the same security group"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+    description = "Allow all internal traffic"
+  }
+
+  ingress {
+    from_port   = 8000
+    to_port     = 9000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow access to CoreCahce Service from outside"
+  }
+
+  ingress {
+    from_port   = 2181
+    to_port     = 2181
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+    description = "Allow Zookeeper client connections from within VPC"
   }
 
   egress {
