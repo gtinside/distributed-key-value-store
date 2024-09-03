@@ -28,7 +28,7 @@ def add(data: Data, token: str = None):
         if server_instance.check_if_leader():
             data_node_host_port = server_instance.get_data_node(data.key)
             if (
-                f"{server_instance._host}:{server_instance._port}"
+                f"{server_instance._private_ip}:{server_instance._port}"
                 == data_node_host_port
             ):
                 return server_instance.add_data(data)
@@ -69,7 +69,7 @@ def get(key: str, token: str = None):
         if server_instance.check_if_leader():
             data_node_host_port = server_instance.get_data_node(key)
             if (
-                f"{server_instance._host}:{server_instance._port}"
+                f"{server_instance._private_ip}:{server_instance._port}"
                 == data_node_host_port
             ):
                 return server_instance.get_data(key)
@@ -100,7 +100,7 @@ def delete(key: str, token: str = None):
         if server_instance.check_if_leader():
             data_node_host_port = server_instance.get_data_node(key)
             if (
-                f"{server_instance._host}:{server_instance._port}"
+                f"{server_instance._private_ip}:{server_instance._port}"
                 == data_node_host_port
             ):
                 return server_instance.delete_data(key)
