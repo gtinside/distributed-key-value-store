@@ -10,12 +10,11 @@ from exception.exceptions import NoDataFoundException
 
 
 class Server:
-    def __init__(self, zk_host, zk_port, host, port, private_ip) -> None:
+    def __init__(self, zk_host, zk_port, private_ip, port) -> None:
         self.zk_connection = KazooClient(hosts=f"{zk_host}:{zk_port}")
         self.zk_connection.start()
-        self._host = host
-        self._port = port
         self._private_ip = private_ip
+        self._port = port
         self._id_host_map = dict()
         self._consistent_hash = ConsistentHashingImpl()
         self._cache = MemTable()

@@ -143,11 +143,7 @@ if __name__ == "__main__":
         ip_address = socket.gethostbyname(socket.gethostname())
         port = random.randint(port_range[0], port_range[1])
         server_instance = Server(
-            zk_host=zk_host,
-            zk_port=zk_port,
-            host=server_ip,
-            port=port,
-            private_ip=ip_address,
+            zk_host=zk_host, zk_port=zk_port, private_ip=ip_address, port=port
         )
         server_instance.start()
         logger.info(

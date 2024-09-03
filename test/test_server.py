@@ -17,7 +17,6 @@ def server():
         yield Server(
             zk_host="localhost",
             zk_port=2181,
-            host="localhost",
             port=8000,
             private_ip="127.0.0.1",
         )
