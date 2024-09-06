@@ -7,6 +7,7 @@ from loguru import logger
 from lsmt.sstable import SSTable
 from scheduler.scheduler import Scheduler
 from exception.exceptions import NoDataFoundException
+from prometheus_client import Counter
 
 
 class Server:
@@ -19,6 +20,7 @@ class Server:
         self._consistent_hash = ConsistentHashingImpl()
         self._cache = MemTable()
         self._ss_table = SSTable()
+        self._key_count = Counter("key_counter", "Number of keys", labelnames=["node"])
         self._scheduler = Scheduler(cache=self._cache)
         self._scheduler.init()
 
@@ -34,11 +36,13 @@ class Server:
     ####################################### Data Node Functions ########################################
 
     def add_data(self, data: Data):
+        self._key_count.labels(node=self._private_ip).inc()
         return self._cache.add(data)
 
     def delete_data(self, key: str):
         data = self.get_data(key)
         self.add_data(Data(key=data.key, value=data.value, deleted=True))
+        self._key_count.labels(node=self._private_ip).inc(-1)
 
     def get_data(self, key) -> Data:
         data = None

@@ -8,3 +8,4 @@ dynaconf
 uvicorn
 pytest
 setproctitle
+prometheus-client
