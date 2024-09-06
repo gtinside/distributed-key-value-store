@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException
 from server.server import Server
-from contextlib import asynccontextmanager
 from utils.model import Data
 from loguru import logger
 import uvicorn
@@ -11,19 +10,34 @@ from exception.exceptions import NoDataFoundException, UnauthorizedRequestExcept
 import requests
 import getopt, sys
 from setproctitle import setproctitle
+from prometheus_client import make_asgi_app
+from prometheus_client import Histogram, Counter
+import time
 
 
 setproctitle("CoreCache")
 
+# Metric for latencies
+get_latency = Histogram(
+    "get_latency", "End to end latency for GET Operation", labelnames=["node"]
+)
+add_latency = Histogram(
+    "add_latency", "End to end latency for ADD Operation", labelnames=["node"]
+)
+del_latency = Histogram(
+    "del_latency", "End to end latency for DEL Operation", labelnames=["node"]
+)
+
 server_instance = None
 server_ip = settings.server.ip
 port_range = [settings.server.startPort, settings.server.endPort]
-app = FastAPI()
+app = FastAPI(debug=False)
 
 
 @app.post("/add/")
 def add(data: Data, token: str = None):
     try:
+        start_time = time.time()
         logger.info(f"Received request for add {data.key}")
         if server_instance.check_if_leader():
             data_node_host_port = server_instance.get_data_node(data.key)
@@ -58,13 +72,18 @@ def add(data: Data, token: str = None):
         )
     except Exception as ae:
         raise HTTPException(
-            status_code=500, detail=f"Error getting the data due to {str(e)}"
+            status_code=500, detail=f"Error getting the data due to {str(ae)}"
+        )
+    finally:
+        add_latency.labels(node=server_instance._private_ip).observe(
+            time.time() - start_time
         )
 
 
 @app.get("/get/")
 def get(key: str, token: str = None):
     try:
+        start_time = time.time()
         logger.info(f"Received a request for retrieving data for key: {key}")
         if server_instance.check_if_leader():
             data_node_host_port = server_instance.get_data_node(key)
@@ -91,11 +110,16 @@ def get(key: str, token: str = None):
         raise HTTPException(
             status_code=500, detail=f"Error getting the data due to {str(e)}"
         )
+    finally:
+        get_latency.labels(node=server_instance._private_ip).observe(
+            time.time() - start_time
+        )
 
 
 @app.post("/delete/")
 def delete(key: str, token: str = None):
     try:
+        start_time = time.time()
         logger.info(f"Received a request for deleting data for key: {key}")
         if server_instance.check_if_leader():
             data_node_host_port = server_instance.get_data_node(key)
@@ -120,6 +144,15 @@ def delete(key: str, token: str = None):
         raise HTTPException(
             status_code=500, detail=f"Error deleting the data due to {str(e)}"
         )
+    finally:
+        del_latency.labels(node=server_instance._private_ip).observe(
+            time.time() - start_time
+        )
+
+
+# Code for exposing Prometheus metrics endpoint
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
 
 
 if __name__ == "__main__":
