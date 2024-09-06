@@ -4,11 +4,11 @@ global:
 scrape_configs:
   - job_name: CoreCacheNode1
     static_configs:
-      - targets: ["192.168.50.138:8436"]  # Replace with the endpoint of the first service
+      - targets: ["192.168.50.138:8536"]  # Replace with the endpoint of the first service
 
   - job_name: CoreCacheNode2
     static_configs:
-      - targets: ["192.168.50.138:8618"]  # Replace with the endpoint of the second service
+      - targets: ["192.168.50.138:8800"]  # Replace with the endpoint of the second service
   
   - job_name: Prometheus
     static_configs:

@@ -36,7 +36,7 @@ class Server:
     ####################################### Data Node Functions ########################################
 
     def add_data(self, data: Data):
-        self._key_count.labels(node=self._private_ip).inc()
+        self._key_count.labels(node=self._private_ip).inc(1)
         return self._cache.add(data)
 
     def delete_data(self, key: str):
