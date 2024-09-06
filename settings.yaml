@@ -3,7 +3,7 @@ default:
     host: "localhost" # ZooKeeper host
     port: 2181 # ZooKeeper port
   server:
-    ip: "127.0.0.1"
+    ip: "192.168.50.138"
     startPort: 8000 # Starting port range
     endPort: 9000 # Ending port range
   dataDirectory: "/tmp" # Directory for data files
