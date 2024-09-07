@@ -69,10 +69,10 @@ resource "aws_vpc" "main" {
 
 # Define a subnet with public IP auto-assignment enabled
 resource "aws_subnet" "my_subnet" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-1a"  # Adjust as needed
-  map_public_ip_on_launch = true  # Enable automatic public IP assignment
+  vpc_id                   = aws_vpc.main.id
+  cidr_block               = "10.0.1.0/24"
+  availability_zone        = "us-east-1a"  # Adjust as needed
+  map_public_ip_on_launch  = true  # Enable automatic public IP assignment
 }
 
 # Create an internet gateway and attach it to the VPC
@@ -97,13 +97,13 @@ resource "aws_route_table_association" "public" {
 
 # Define the EC2 instances
 resource "aws_instance" "core_cache" {
-  count             = 3
-  ami               = "ami-066784287e358dad1"  # Amazon Linux 2 AMI (Adjust the AMI ID as needed)
-  instance_type     = "t2.micro"
-  key_name          = "CoreCacheKey"  # Replace with your key pair name
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
-  subnet_id         = aws_subnet.my_subnet.id  # Replace with your subnet ID
-  associate_public_ip_address = true  # Ensure a public IP is assigned
+  count                        = 5  # Create five EC2 instances
+  ami                          = "ami-066784287e358dad1"  # Amazon Linux 2 AMI (Adjust the AMI ID as needed)
+  instance_type                = "t2.micro"
+  key_name                     = "CoreCacheKey"  # Replace with your key pair name
+  vpc_security_group_ids       = [aws_security_group.web_sg.id]
+  subnet_id                    = aws_subnet.my_subnet.id  # Replace with your subnet ID
+  associate_public_ip_address  = true  # Ensure a public IP is assigned
 
   # User data script to install Python and Docker
   user_data = <<-EOF
@@ -115,11 +115,18 @@ resource "aws_instance" "core_cache" {
               sudo service docker start
               sudo systemctl enable docker
               
-              # Set environment variable for Dynaconf
+              # Set environment variable for configuration
               echo 'ENV_FOR_DYNACONF=production' | sudo tee -a /etc/environment
               EOF
 
   tags = {
     Name = "core-cache-${count.index + 1}"
+    type = lookup({
+      0 = "leader",
+      1 = "follower-1",
+      2 = "follower-2",
+      3 = "metrics",
+      4 = "zookeeper"
+    }, count.index, "unknown")
   }
 }

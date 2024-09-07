@@ -1,0 +1,116 @@
+name: Terraform Deploy and Configure
+
+on:
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.4  # Specify the Terraform version you need
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # Specify the AWS region you are using
+
+      - name: Terraform Init
+        run: terraform init -backend-config="bucket=<your-s3-bucket-name>" -backend-config="key=tf-state/terraform.tfstate" -backend-config="region=us-east-1"
+        working-directory: deployment/aws
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: deployment/aws
+
+      - name: Get EC2 Private IPs
+        id: ec2_info
+        run: |
+          # Fetch EC2 private IPs with appropriate tags
+          # Install AWS CLI if not already available
+          sudo apt-get install -y awscli
+          
+          # Fetch private IPs of EC2s based on tags
+          leader_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=leader" --query "Reservations[*].Instances[*].PrivateIpAddress" --output text)
+          follower1_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=follower-1" --query "Reservations[*].Instances[*].PrivateIpAddress" --output text)
+          follower2_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=follower-2" --query "Reservations[*].Instances[*].PrivateIpAddress" --output text)
+          zookeeper_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=zookeeper" --query "Reservations[*].Instances[*].PrivateIpAddress" --output text)
+          
+          echo "leader_ip=${leader_ip}" >> $GITHUB_ENV
+          echo "follower1_ip=${follower1_ip}" >> $GITHUB_ENV
+          echo "follower2_ip=${follower2_ip}" >> $GITHUB_ENV
+          echo "zookeeper_ip=${zookeeper_ip}" >> $GITHUB_ENV
+
+      - name: Checkout Code on All EC2s
+        run: |
+          # Install SSH client
+          sudo apt-get install -y sshpass
+          
+          # Create a temporary private key file
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > /tmp/ec2-private-key.pem
+          chmod 600 /tmp/ec2-private-key.pem
+
+          # Checkout code on each EC2 instance
+          for ip in ${leader_ip} ${follower1_ip} ${follower2_ip} ${zookeeper_ip}; do
+            ssh -i /tmp/ec2-private-key.pem ec2-user@$ip "git clone https://github.com/your-repo.git"
+          done
+
+      - name: Run Docker on Zookeeper EC2
+        run: |
+          # Install SSH client
+          sudo apt-get install -y sshpass
+          
+          # Create a temporary private key file
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > /tmp/ec2-private-key.pem
+          chmod 600 /tmp/ec2-private-key.pem
+          
+          # Run Docker command on Zookeeper EC2
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$zookeeper_ip "docker run --name some-zookeeper -p 2181:2181 --restart always -d zookeeper"
+
+      - name: Run start-server.sh on Leader, Follower-1, Follower-2 EC2s
+        run: |
+          # Install SSH client
+          sudo apt-get install -y sshpass
+          
+          # Create a temporary private key file
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > /tmp/ec2-private-key.pem
+          chmod 600 /tmp/ec2-private-key.pem
+          
+          # Run start-server.sh script on each instance
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$leader_ip "bash /path/to/scripts/start-server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower1_ip "bash /path/to/scripts/start-server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower2_ip "bash /path/to/scripts/start-server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+
+      - name: Modify Prometheus Config on Metrics EC2
+        run: |
+          # Install SSH client
+          sudo apt-get install -y sshpass
+          
+          # Create a temporary private key file
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > /tmp/ec2-private-key.pem
+          chmod 600 /tmp/ec2-private-key.pem
+          
+          # Modify Prometheus config
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_ip "sed -i 's/\$host1/$leader_ip/' /path/to/config/PROD/prometheus.yml"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_ip "sed -i 's/\$host2/$follower1_ip/' /path/to/config/PROD/prometheus.yml"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_ip "sed -i 's/\$host3/$follower2_ip/' /path/to/config/PROD/prometheus.yml"
+
+      - name: Run Docker Compose on Metrics EC2
+        run: |
+          # Install SSH client
+          sudo apt-get install -y sshpass
+          
+          # Create a temporary private key file
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > /tmp/ec2-private-key.pem
+          chmod 600 /tmp/ec2-private-key.pem
+          
+          # Run Docker Compose
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_ip "docker-compose -f /path/to/combo.yaml up -d"
