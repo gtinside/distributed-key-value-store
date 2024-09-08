@@ -24,7 +24,7 @@ jobs:
           aws-region: us-east-1  # Specify the AWS region you are using
 
       - name: Terraform Init
-        run: terraform init -backend-config="bucket=corecache-tf-state" -backend-config="key=tf-state/terraform.tfstate" -backend-config="region=us-east-1"
+        run: terraform init
         working-directory: deployment/aws
 
       - name: Terraform Apply
@@ -35,7 +35,6 @@ jobs:
         id: ec2_info
         run: |
           # Fetch EC2 private IPs with appropriate tags
-          # Install AWS CLI if not already available
           sudo apt-get install -y awscli
           
           # Fetch private IPs of EC2s based on tags
@@ -44,24 +43,46 @@ jobs:
           follower2_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=follower-2" --query "Reservations[*].Instances[*].PrivateIpAddress" --output text)
           zookeeper_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=zookeeper" --query "Reservations[*].Instances[*].PrivateIpAddress" --output text)
           
+          # Fetch public IPs of EC2s based on tags
+          leader_public_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=leader" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
+          follower1_public_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=follower-1" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
+          follower2_public_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=follower-2" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
+          zookeeper_public_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=zookeeper" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
+          metrics_public_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=metrics" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
+
           echo "leader_ip=${leader_ip}" >> $GITHUB_ENV
           echo "follower1_ip=${follower1_ip}" >> $GITHUB_ENV
           echo "follower2_ip=${follower2_ip}" >> $GITHUB_ENV
           echo "zookeeper_ip=${zookeeper_ip}" >> $GITHUB_ENV
+          echo "leader_public_ip=${leader_public_ip}" >> $GITHUB_ENV
+          echo "follower1_public_ip=${follower1_public_ip}" >> $GITHUB_ENV
+          echo "follower2_public_ip=${follower2_public_ip}" >> $GITHUB_ENV
+          echo "zookeeper_public_ip=${zookeeper_public_ip}" >> $GITHUB_ENV
+          echo "metrics_public_ip=${metrics_public_ip}" >> $GITHUB_ENV
 
-      - name: Checkout Code on All EC2s
+      - name: Download and Extract Latest Release on Each EC2 Instance
         run: |
-          # Install SSH client
-          sudo apt-get install -y sshpass
-          
-          # Create a temporary private key file
-          echo "${{ secrets.EC2_PRIVATE_KEY }}" > /tmp/ec2-private-key.pem
-          chmod 600 /tmp/ec2-private-key.pem
+            # Install required tools
+            sudo apt-get install -y curl jq sshpass
 
-          # Checkout code on each EC2 instance
-          for ip in ${leader_ip} ${follower1_ip} ${follower2_ip} ${zookeeper_ip}; do
-            ssh -i /tmp/ec2-private-key.pem ec2-user@$ip "git clone https://github.com/your-repo.git"
-          done
+            # Fetch the latest release tar.gz URL from GitHub
+            latest_release_url=$(curl -s https://api.github.com/repos/gtinside/distributed-key-value-store/releases/latest | jq -r '.tarball_url')
+            
+            # Create a temporary private key file
+            echo "${{ secrets.EC2_PRIVATE_KEY }}" > /tmp/ec2-private-key.pem
+            chmod 600 /tmp/ec2-private-key.pem
+
+            # Download and extract the release on each EC2 instance
+            for ip in ${leader_public_ip} ${follower1_public_ip} ${follower2_public_ip} ${zookeeper_public_ip}; do
+                ssh -i /tmp/ec2-private-key.pem ec2-user@$ip << EOF
+                # Download the latest release tarball
+                curl -L -o latest-release.tar.gz $latest_release_url
+                
+                # Extract the tarball
+                tar -xvf latest-release.tar.gz
+                
+                # Clean up
+                rm latest-release.tar.gz
 
       - name: Run Docker on Zookeeper EC2
         run: |
@@ -73,7 +94,7 @@ jobs:
           chmod 600 /tmp/ec2-private-key.pem
           
           # Run Docker command on Zookeeper EC2
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$zookeeper_ip "docker run --name some-zookeeper -p 2181:2181 --restart always -d zookeeper"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$zookeeper_public_ip "docker run --name some-zookeeper -p 2181:2181 --restart always -d zookeeper"
 
       - name: Run start-server.sh on Leader, Follower-1, Follower-2 EC2s
         run: |
@@ -85,9 +106,9 @@ jobs:
           chmod 600 /tmp/ec2-private-key.pem
           
           # Run start-server.sh script on each instance
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$leader_ip "bash /path/to/scripts/start-server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower1_ip "bash /path/to/scripts/start-server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower2_ip "bash /path/to/scripts/start-server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$leader_public_ip "bash ./distributed-key-value-store/scripts/start-server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower1_public_ip "bash ./distributed-key-value-store/scripts/start-server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower2_public_ip "bash ./distributed-key-value-store/scripts/start-server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
 
       - name: Modify Prometheus Config on Metrics EC2
         run: |
@@ -99,9 +120,9 @@ jobs:
           chmod 600 /tmp/ec2-private-key.pem
           
           # Modify Prometheus config
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_ip "sed -i 's/\$host1/$leader_ip/' /path/to/config/PROD/prometheus.yml"
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_ip "sed -i 's/\$host2/$follower1_ip/' /path/to/config/PROD/prometheus.yml"
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_ip "sed -i 's/\$host3/$follower2_ip/' /path/to/config/PROD/prometheus.yml"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sed -i 's/\$host1/$leader_ip/' ./distributed-key-value-store/observability/config/prod/prometheus.yml"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sed -i 's/\$host2/$follower1_ip/' ./distributed-key-value-store/observability/config/prod/prometheus.yml"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sed -i 's/\$host3/$follower2_ip/' ./distributed-key-value-store/observability/config/prod/prometheus.yml"
 
       - name: Run Docker Compose on Metrics EC2
         run: |
@@ -113,4 +134,4 @@ jobs:
           chmod 600 /tmp/ec2-private-key.pem
           
           # Run Docker Compose
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_ip "docker-compose -f /path/to/combo.yaml up -d"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "docker-compose -f ./distributed-key-value-store/deployment/docker/docker-compose.yaml up -d"

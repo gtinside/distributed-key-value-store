@@ -2,6 +2,14 @@ provider "aws" {
   region = "us-east-1"  # Adjust the region as needed
 }
 
+terraform {
+  backend "s3" {
+    bucket         = "corecache-tf-state"
+    key            = "tf-state/terraform.tfstate"
+    region         = "us-east-1"
+  }
+}
+
 # Define a security group to allow HTTP, HTTPS, and SSH
 resource "aws_security_group" "web_sg" {
   name        = "web_sg"
