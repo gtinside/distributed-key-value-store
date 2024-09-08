@@ -24,7 +24,7 @@ jobs:
           aws-region: us-east-1  # Specify the AWS region you are using
 
       - name: Terraform Init
-        run: terraform init -backend-config="bucket=corecache-tf-state" -backend-config="key=tf-state/terraform.tfstate" -backend-config="region=us-east-1"
+        run: terraform init
         working-directory: deployment/aws
 
       - name: Terraform Destroy
