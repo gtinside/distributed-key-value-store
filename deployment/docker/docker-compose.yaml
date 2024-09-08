@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.37.0  # Specify the Prometheus version
+    container_name: prometheus
+    ports:
+      - "9090:9090"  # Expose Prometheus on port 9090
+    volumes:
+      - prometheus_data:/prometheus  # Persistent data storage for Prometheus
+      - ./observability/prod/prometheus.yml:/etc/prometheus/prometheus.yml  # Mount Prometheus config file
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'  # Specify the configuration file
+
+  grafana:
+    image: grafana/grafana:latest  # Use the latest Grafana image
+    container_name: grafana
+    ports:
+      - "3000:3000"  # Expose Grafana on port 3000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin  # Default admin password (change as needed)
+    volumes:
+      - grafana_data:/var/lib/grafana  # Persistent data storage for Grafana
+    depends_on:
+      - prometheus
+    entrypoint: ["/bin/bash", "-c", "sleep 10 && /run.sh"]  # Delay startup to ensure Prometheus is up
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
