@@ -58,12 +58,20 @@ jobs:
           echo "follower2_public_ip=${follower2_public_ip}" >> $GITHUB_ENV
           echo "zookeeper_public_ip=${zookeeper_public_ip}" >> $GITHUB_ENV
           echo "metrics_public_ip=${metrics_public_ip}" >> $GITHUB_ENV
+      - name: Install required tools
+        run: |
+          sudo apt-get install -y curl jq sshpass
+        
+      - name: Add EC2 Instances to Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${leader_public_ip} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${follower1_public_ip} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${follower2_public_ip} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${zookeeper_public_ip} >> ~/.ssh/known_hosts
 
       - name: Download and Extract Latest Release on Each EC2 Instance
         run: |
-            # Install required tools
-            sudo apt-get install -y curl jq sshpass
-    
             # Fetch the latest release tar.gz URL from GitHub
             latest_release_url=$(curl -s https://api.github.com/repos/gtinside/distributed-key-value-store/releases/latest | jq -r '.tarball_url')
         
@@ -99,7 +107,7 @@ jobs:
           chmod 600 /tmp/ec2-private-key.pem
           
           # Run Docker command on Zookeeper EC2
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$zookeeper_public_ip "docker run --name some-zookeeper -p 2181:2181 --restart always -d zookeeper"
+          ssh -o StrictHostKeyChecking=no -i /tmp/ec2-private-key.pem ec2-user@$zookeeper_public_ip "docker run --name some-zookeeper -p 2181:2181 --restart always -d zookeeper"
 
       - name: Run start-server.sh on Leader, Follower-1, Follower-2 EC2s
         run: |
