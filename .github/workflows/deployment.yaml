@@ -73,9 +73,9 @@ jobs:
 
           # Download and extract the release on each EC2 instance
           for ip in ${leader_public_ip} ${follower1_public_ip} ${follower2_public_ip} ${zookeeper_public_ip}; do
-            ssh -i /tmp/ec2-private-key.pem ec2-user@$ip << 'EOF'
+            ssh -i /tmp/ec2-private-key.pem ec2-user@$ip << EOF
               # Download the latest release tarball
-              curl -L -o latest-release.tar.gz $latest_release_url
+              curl -L -o latest-release.tar.gz "${latest_release_url}"
               
               # Extract the tarball
               tar -xvf latest-release.tar.gz
