@@ -82,7 +82,8 @@ jobs:
               
               # Clean up
               rm latest-release.tar.gz
-          EOF
+            EOF
+          done
         env:
           EC2_PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
 
