@@ -107,14 +107,14 @@ jobs:
           chmod 600 /tmp/ec2-private-key.pem
           
           ssh -o StrictHostKeyChecking=no -i /tmp/ec2-private-key.pem ec2-user@$zookeeper_public_ip << 'EOF'
-          # Check if the container is already running
-          if [ "$(sudo docker ps -q -f name=some-zookeeper)" ]; then
+            # Check if the container is already running
+            if [ "$(sudo docker ps -q -f name=some-zookeeper)" ]; then
                 echo "Container is already running."
-          else
+            else
                 echo "Starting the container..."
                 sudo docker run --name some-zookeeper -p 2181:2181 --restart always -d zookeeper
-           fi
-           EOF
+            fi
+          EOF
 
       - name: Run start-server.sh on Leader, Follower-1, Follower-2 EC2s
         run: |
