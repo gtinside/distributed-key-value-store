@@ -107,7 +107,7 @@ jobs:
           chmod 600 /tmp/ec2-private-key.pem
           
           # Run Docker command on Zookeeper EC2
-          ssh -o StrictHostKeyChecking=no -i /tmp/ec2-private-key.pem ec2-user@$zookeeper_public_ip "docker run --name some-zookeeper -p 2181:2181 --restart always -d zookeeper"
+          ssh -o StrictHostKeyChecking=no -i /tmp/ec2-private-key.pem ec2-user@$zookeeper_public_ip "sudo docker run --name some-zookeeper -p 2181:2181 --restart always -d zookeeper"
 
       - name: Run start-server.sh on Leader, Follower-1, Follower-2 EC2s
         run: |
