@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "us-east-1"  # Adjust the region as needed
+  region = "us-east-1"  
 }
 
 terraform {
@@ -106,28 +106,27 @@ resource "aws_route_table_association" "public" {
 # Define the EC2 instances
 resource "aws_instance" "core_cache" {
   count                        = 5  # Create five EC2 instances
-  ami                          = "ami-066784287e358dad1"  # Amazon Linux 2 AMI (Adjust the AMI ID as needed)
+  ami                          = "ami-066784287e358dad1"  
   instance_type                = "t2.micro"
-  key_name                     = "CoreCacheKey"  # Replace with your key pair name
+  key_name                     = "CoreCacheKey" 
   vpc_security_group_ids       = [aws_security_group.web_sg.id]
-  subnet_id                    = aws_subnet.my_subnet.id  # Replace with your subnet ID
+  subnet_id                    = aws_subnet.my_subnet.id  
   associate_public_ip_address  = true  # Ensure a public IP is assigned
 
   # User data script to install Python and Docker
   user_data = <<-EOF
               #!/bin/bash
               sudo yum update -y
-              sudo yum install -y python3.11
+              sudo yum install -y python3.11 jq
               sudo python3 -m ensurepip --upgrade
               sudo yum install -y docker
               sudo service docker start
               sudo systemctl enable docker
 
                # Install Docker Compose
-              DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r '.tag_name')
-              sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo curl -L "https://github.com/docker/compose/releases/download/2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
               sudo chmod +x /usr/local/bin/docker-compose
-              
+                
               # Verify Docker Compose installation
               docker-compose --version
               
