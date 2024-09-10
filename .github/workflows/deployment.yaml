@@ -126,9 +126,9 @@ jobs:
           chmod 600 /tmp/ec2-private-key.pem
           
           # Run start-server.sh script on each instance
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$leader_public_ip "bash ./gtinside-distributed-key-value-store/scripts/start-server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower1_public_ip "bash ./gtinside-distributed-key-value-store/scripts/start-server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower2_public_ip "bash ./gtinside-distributed-key-value-store/scripts/start-server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$leader_public_ip "bash ./gtinside-distributed-key-value-store/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower1_public_ip "bash ./gtinside-distributed-key-value-store/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower2_public_ip "bash ./gtinside-distributed-key-value-store/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
 
       - name: Modify Prometheus Config on Metrics EC2
         run: |
