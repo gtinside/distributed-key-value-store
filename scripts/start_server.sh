@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Define log and PID directory
-LOG_DIR="../logs"
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+LOG_DIR="$SCRIPT_DIR/../logs"
 PID_FILE="$LOG_DIR/corecache.pid"
 LOG_FILE="$LOG_DIR/corecache.log"
 
