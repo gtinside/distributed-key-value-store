@@ -85,10 +85,10 @@ jobs:
                 
                 # Download the latest release tarball
                 curl -L -o latest-release.tar.gz ${latest_release_url} &&
-            
-                # Extract the tarball
+
+                 # Extract the tarball
                 tar -xvf latest-release.tar.gz &&
-            
+
                 # Clean up
                 rm latest-release.tar.gz
             "
@@ -126,9 +126,10 @@ jobs:
           chmod 600 /tmp/ec2-private-key.pem
           
           # Run start-server.sh script on each instance
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$leader_public_ip "bash ./gtinside-distributed-key-value-store/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower1_public_ip "bash ./gtinside-distributed-key-value-store/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower2_public_ip "bash ./gtinside-distributed-key-value-store/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$leader_public_ip "bash ./gtinside-distributed-key-value-store-*/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower1_public_ip "bash ./gtinside-distributed-key-value-store-*/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower2_public_ip "bash ./gtinside-distributed-key-value-store-*/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower2_public_ip "bash ./gtinside-distributed-key-value-store-*/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
 
       - name: Modify Prometheus Config on Metrics EC2
         run: |
@@ -140,9 +141,9 @@ jobs:
           chmod 600 /tmp/ec2-private-key.pem
           
           # Modify Prometheus config
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sed -i 's/\$host1/$leader_ip/' ./gtinside-distributed-key-value-store/observability/config/prod/prometheus.yml"
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sed -i 's/\$host2/$follower1_ip/' ./gtinside-distributed-key-value-store/observability/config/prod/prometheus.yml"
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sed -i 's/\$host3/$follower2_ip/' ./gtinside-distributed-key-value-store/observability/config/prod/prometheus.yml"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sed -i 's/\$host1/$leader_ip/' ./gtinside-distributed-key-value-store-*/observability/config/prod/prometheus.yml"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sed -i 's/\$host2/$follower1_ip/' ./gtinside-distributed-key-value-store-*/observability/config/prod/prometheus.yml"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sed -i 's/\$host3/$follower2_ip/' ./gtinside-distributed-key-value-store-*/observability/config/prod/prometheus.yml"
 
       - name: Run Docker Compose on Metrics EC2
         run: |
@@ -154,4 +155,4 @@ jobs:
           chmod 600 /tmp/ec2-private-key.pem
           
           # Run Docker Compose
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sudo docker-compose -f ./gtinside-distributed-key-value-store/deployment/docker/docker-compose.yaml up -d"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sudo docker-compose -f ./gtinside-distributed-key-value-store-*/deployment/docker/docker-compose.yaml up -d"

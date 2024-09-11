@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Define log and PID directory
-LOG_DIR="../logs"
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+LOG_DIR="$SCRIPT_DIR/../logs"
 PID_FILE="$LOG_DIR/corecache.pid"
 LOG_FILE="$LOG_DIR/corecache.log"
 
@@ -49,8 +50,11 @@ fi
 echo "Activating virtual environment..."
 source "$VENV_DIR/bin/activate"
 
-echo "Installing dependencies..."
-pip install -r ../requirements.txt
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+REQUIREMENTS_PATH="$SCRIPT_DIR/../requirements.txt"
+
+echo "Using requirements file at: $REQUIREMENTS_PATH"
+pip install -r "$REQUIREMENTS_PATH"
 
 # Check if both arguments are provided
 if [ "$#" -ne 4 ]; then
