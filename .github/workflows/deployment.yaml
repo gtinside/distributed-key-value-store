@@ -157,4 +157,4 @@ jobs:
           chmod 600 /tmp/ec2-private-key.pem
           
           # Run Docker Compose
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sudo docker compose -f ./gtinside-distributed-key-value-store-*/deployment/docker/docker-compose.yaml up -d"
+          ssh -i /tmp/ec2-private-key.pem ec2-user@$metrics_public_ip "sudo docker-compose -f ./gtinside-distributed-key-value-store-*/deployment/docker/docker-compose.yaml up -d"
