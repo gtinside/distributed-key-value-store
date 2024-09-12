@@ -8,7 +8,7 @@ LOG_FILE="$LOG_DIR/corecache.log"
 
 # Create log directory if it doesn't exist
 if [ ! -d "$LOG_DIR" ]; then
-    echo "Creating log directory..."
+    cho "Using log directory file at: $LOG_DIR"
     mkdir -p "$LOG_DIR"
 fi
 
@@ -90,7 +90,7 @@ fi
 
 # Run the main.py script in the background
 echo "Starting CoreCache with ZooKeeper host $zooKeeperHost and port $zooKeeperPort"
-nohup python ../main.py --zooKeeperHost "$zooKeeperHost" --zooKeeperPort "$zooKeeperPort" > "$LOG_FILE" 2>&1 &
+nohup python $SCRIPT_DIR/../main.py --zooKeeperHost "$zooKeeperHost" --zooKeeperPort "$zooKeeperPort" > "$LOG_FILE" 2>&1 &
 
 # Save the PID of the background process
 echo $! > "$PID_FILE"
