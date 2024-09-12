@@ -8,7 +8,7 @@ LOG_FILE="$LOG_DIR/corecache.log"
 
 # Create log directory if it doesn't exist
 if [ ! -d "$LOG_DIR" ]; then
-    echo "Creating log directory..."
+    cho "Using log directory file at: $LOG_DIR"
     mkdir -p "$LOG_DIR"
 fi
 
