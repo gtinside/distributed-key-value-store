@@ -122,12 +122,14 @@ resource "aws_instance" "core_cache" {
               sudo yum install -y docker
               sudo service docker start
               sudo systemctl enable docker
-              sudo yum install -y docker-compose-plugin
-
-            
                 
               # Verify Docker Compose installation
               docker compose version
+
+              # Install docker compose 
+              sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64 -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+              docker-compose version
               
               # Set environment variable for configuration
               echo 'ENV_FOR_DYNACONF=production' | sudo tee -a /etc/environment
