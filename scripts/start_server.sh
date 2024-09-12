@@ -90,7 +90,7 @@ fi
 
 # Run the main.py script in the background
 echo "Starting CoreCache with ZooKeeper host $zooKeeperHost and port $zooKeeperPort"
-nohup python ../main.py --zooKeeperHost "$zooKeeperHost" --zooKeeperPort "$zooKeeperPort" > "$LOG_FILE" 2>&1 &
+nohup python $SCRIPT_DIR/../main.py --zooKeeperHost "$zooKeeperHost" --zooKeeperPort "$zooKeeperPort" > "$LOG_FILE" 2>&1 &
 
 # Save the PID of the background process
 echo $! > "$PID_FILE"
