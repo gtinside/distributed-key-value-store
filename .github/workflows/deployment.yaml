@@ -42,6 +42,7 @@ jobs:
           follower1_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=follower-1" --query "Reservations[*].Instances[*].PrivateIpAddress" --output text)
           follower2_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=follower-2" --query "Reservations[*].Instances[*].PrivateIpAddress" --output text)
           zookeeper_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=zookeeper" --query "Reservations[*].Instances[*].PrivateIpAddress" --output text)
+          metrics_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=metrics" --query "Reservations[*].Instances[*].PrivateIpAddress" --output text)
           
           leader_public_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=leader" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
           follower1_public_ip=$(aws ec2 describe-instances --filters "Name=tag:type,Values=follower-1" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
@@ -58,10 +59,11 @@ jobs:
           echo "follower2_public_ip=${follower2_public_ip}" >> $GITHUB_ENV
           echo "zookeeper_public_ip=${zookeeper_public_ip}" >> $GITHUB_ENV
           echo "metrics_public_ip=${metrics_public_ip}" >> $GITHUB_ENV
+
       - name: Install required tools
         run: |
           sudo apt-get install -y curl jq sshpass
-        
+
       - name: Add EC2 Instances to Known Hosts
         run: |
           mkdir -p ~/.ssh
@@ -69,6 +71,7 @@ jobs:
           ssh-keyscan -H ${follower1_public_ip} >> ~/.ssh/known_hosts
           ssh-keyscan -H ${follower2_public_ip} >> ~/.ssh/known_hosts
           ssh-keyscan -H ${zookeeper_public_ip} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${metrics_public_ip} >> ~/.ssh/known_hosts
 
       - name: Download and Extract Latest Release on Each EC2 Instance
         run: |
@@ -80,7 +83,7 @@ jobs:
             chmod 600 /tmp/ec2-private-key.pem
     
             # Download and extract the release on each EC2 instance
-            for ip in ${leader_public_ip} ${follower1_public_ip} ${follower2_public_ip} ${zookeeper_public_ip}; do
+            for ip in ${leader_public_ip} ${follower1_public_ip} ${follower2_public_ip} ${metrics_public_ip} ${zookeeper_public_ip}; do
                 ssh -i /tmp/ec2-private-key.pem ec2-user@$ip "
                 
                 # Download the latest release tarball
@@ -128,7 +131,6 @@ jobs:
           # Run start-server.sh script on each instance
           ssh -i /tmp/ec2-private-key.pem ec2-user@$leader_public_ip "bash ./gtinside-distributed-key-value-store-*/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
           ssh -i /tmp/ec2-private-key.pem ec2-user@$follower1_public_ip "bash ./gtinside-distributed-key-value-store-*/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
-          ssh -i /tmp/ec2-private-key.pem ec2-user@$follower2_public_ip "bash ./gtinside-distributed-key-value-store-*/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
           ssh -i /tmp/ec2-private-key.pem ec2-user@$follower2_public_ip "bash ./gtinside-distributed-key-value-store-*/scripts/start_server.sh --zooKeeperHost $zookeeper_ip --zooKeeperPort 2181"
 
       - name: Modify Prometheus Config on Metrics EC2
