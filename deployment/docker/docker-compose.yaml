@@ -8,7 +8,7 @@ services:
       - "9090:9090"  # Expose Prometheus on port 9090
     volumes:
       - prometheus_data:/prometheus  # Persistent data storage for Prometheus
-      - ./observability/prod/prometheus.yml:/etc/prometheus/prometheus.yml  # Mount Prometheus config file
+      - ../../observability/config/prod/prometheus.yml:/etc/prometheus/prometheus.yml  # Mount Prometheus config file
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'  # Specify the configuration file
 
