@@ -11,7 +11,7 @@ services:
       - ../../observability/config/prod/prometheus.yml:/etc/prometheus/prometheus.yml  # Mount Prometheus config file
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'  # Specify the configuration file
-
+      
   grafana:
     image: grafana/grafana:latest  # Use the latest Grafana image
     container_name: grafana
