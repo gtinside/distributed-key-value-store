@@ -46,7 +46,7 @@ docker run -it --rm --link some-zookeeper:zookeeper zookeeper zkCli.sh -server z
 ## Benchmarks
 | Date       | CoreCache Version | Number of Nodes | Configuration | Operation | Total Number of Requests | Max Throughput | Average Latency | p95 Latency | Detailed Report |
 |------------|-------------------|-----------------|---------------|-----------|--------------------------|----------------|-----------------|-------------|-----------------|
-| 09/16/2024 | v0.15             | 3               | AWS t2.micro   | POST      | 10K                      | 31.2 requests/sec | 3.53 ms         | 12.2 ms     | [https://github.com/gtinside/distributed-key-value-store/blob/main/load-tests/v0.15/Load%20Testing%20(09%3A16)%20-%2016%20Sep%2C%2000%3A44%20-%20Dashboards%20-%20Grafana.pdf](More Details) |
+| 09/16/2024 | v0.15             | 3               | AWS t2.micro   | POST      | 10K                      | 31.2 requests/sec | 3.53 ms         | 12.2 ms     | [More Details](./load-tests/v0.15/Load%20Testing%20(09:16)%20-%2016%20Sep,%2000:44%20-%20Dashboards%20-%20Grafana.pdf) |
 
 ## Limitations
 - Race condition, if the data is getting inserted into cache and cache becomes qualified for a flush to SSTable. 
