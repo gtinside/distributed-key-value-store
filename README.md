@@ -5,6 +5,13 @@ A distributed key-value store
 
 
 
+## Benchmarks
+
+| Date       | CoreCache Version | Number of Nodes | Configuration | Operation | Total Number of Requests | Max Throughput | Average Latency | p95 Latency | Detailed Report |
+|------------|-------------------|-----------------|---------------|-----------|--------------------------|----------------|-----------------|-------------|-----------------|
+| 09/16/2024 | v0.15             | 3               | AWS t2.micro   | POST      | 10K                      | 31.2 requests/sec | 3.53 ms         | 12.2 ms     | [Insert link](#) |
+
+
 ## MVP
 1. Leader election and coordination via ZooKeeper
 2. Read and Writes through leader 
