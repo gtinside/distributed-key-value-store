@@ -4,14 +4,6 @@ A distributed key-value store
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/gtinside/distributed-key-value-store/validate.yaml?style=plastic&label=Unit%20Tests) ![GitHub Release](https://img.shields.io/github/v/release/gtinside/distributed-key-value-store?style=plastic&color=red) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/gtinside/distributed-key-value-store?style=plastic) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr-closed/gtinside/distributed-key-value-store?style=plastic&color=blue) ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/gtinside/distributed-key-value-store?style=plastic&color=orange) ![GitHub License](https://img.shields.io/github/license/gtinside/distributed-key-value-store?style=plastic)
 
 
-
-## Benchmarks
-
-| Date       | CoreCache Version | Number of Nodes | Configuration | Operation | Total Number of Requests | Max Throughput | Average Latency | p95 Latency | Detailed Report |
-|------------|-------------------|-----------------|---------------|-----------|--------------------------|----------------|-----------------|-------------|-----------------|
-| 09/16/2024 | v0.15             | 3               | AWS t2.micro   | POST      | 10K                      | 31.2 requests/sec | 3.53 ms         | 12.2 ms     | [Insert link](#) |
-
-
 ## MVP
 1. Leader election and coordination via ZooKeeper
 2. Read and Writes through leader 
@@ -51,6 +43,10 @@ docker run -it --rm --link some-zookeeper:zookeeper zookeeper zkCli.sh -server z
 5. ```cd distributed-key-value-store-0.09/scripts```
 6. ```start_server.sh --zooKeeperHost localhost --zooKeeperPort 2181`
 
+## Benchmarks
+| Date       | CoreCache Version | Number of Nodes | Configuration | Operation | Total Number of Requests | Max Throughput | Average Latency | p95 Latency | Detailed Report |
+|------------|-------------------|-----------------|---------------|-----------|--------------------------|----------------|-----------------|-------------|-----------------|
+| 09/16/2024 | v0.15             | 3               | AWS t2.micro   | POST      | 10K                      | 31.2 requests/sec | 3.53 ms         | 12.2 ms     | [https://github.com/gtinside/distributed-key-value-store/blob/main/load-tests/v0.15/Load%20Testing%20(09%3A16)%20-%2016%20Sep%2C%2000%3A44%20-%20Dashboards%20-%20Grafana.pdf](More Details) |
 
 ## Limitations
 - Race condition, if the data is getting inserted into cache and cache becomes qualified for a flush to SSTable. 
