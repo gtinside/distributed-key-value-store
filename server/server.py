@@ -1,5 +1,4 @@
-import socket
-from utils.model import Data
+from utils.model import Data, PartitionMapRequest, PartitionMapOperation
 from kazoo.client import KazooClient
 from impl.consistent_hashing import ConsistentHashingImpl
 from lsmt.mem_table import MemTable
@@ -45,6 +44,7 @@ class Server:
     def delete_data(self, key: str):
         data = self.get_data(key)
         self.add_data(Data(key=data.key, value=data.value, deleted=True))
+        self._partition_map.get(key).remove(f"{self._private_ip}:{self._port}")
         self._key_count.labels(node=self._private_ip).inc(-1)
 
     def get_data(self, key) -> Data:
@@ -88,6 +88,12 @@ class Server:
 
     def get_all_nodes(self):
         return self.zk_connection.get_children("/election")
+
+    def update_partiton_map(self, request: PartitionMapRequest):
+        if request.operation == PartitionMapOperation.new:
+            self._partition_map.update(request.key, request.node_details)
+        else:
+            self._partition_map.remove(request.key, request.node_details)
 
     ############################ The beginning #######################################################
 
