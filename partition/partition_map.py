@@ -16,12 +16,13 @@ class PartitionMap:
         self._partition_map = defaultdict(set)
 
     def update(self, data: Data, node):
-        self._partition_map.get(data.key).add(node)
+        self._partition_map[data.key].add(node)
 
     def get(self, key):
-        return self._partition_map(key)
-    
-    def remove(self, key, node)
+        return self._partition_map[key]
+
+    def remove(self, key, node):
+        self._partition_map.get(key).remove(node)
 
     def __repr__(self) -> str:
         data = json.dump(self._partition_map)

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from server.server import Server
-from utils.model import Data
+from utils.model import Data, PartitionMapRequest
 from loguru import logger
 import uvicorn
 import random
@@ -147,6 +147,22 @@ def delete(key: str, token: str = None):
     finally:
         del_latency.labels(node=server_instance._private_ip).observe(
             time.time() - start_time
+        )
+
+
+@app.post("/update-partition-map/")
+def update_partition_map(request: PartitionMapRequest):
+    logger.info(
+        "Received request to update partition map for key: {} and node: {}",
+        request.key,
+        request.node_details,
+    )
+    try:
+        server_instance.update_partiton_map(request)
+        return True
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error updating partitoon amp {str(e)}"
         )
 
 
