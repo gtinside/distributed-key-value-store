@@ -19,5 +19,8 @@ class PartitionMapRequest(BaseModel):
     key: str
     node: str
     port: str
-    node_details: str = f"{node}:{port}"
     operation: PartitionMapOperation
+
+    @property
+    def node_details(self) -> str:
+        return f"{self.node}:{self.port}"
