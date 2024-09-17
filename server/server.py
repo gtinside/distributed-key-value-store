@@ -8,6 +8,7 @@ from lsmt.sstable import SSTable
 from scheduler.scheduler import Scheduler
 from exception.exceptions import NoDataFoundException
 from prometheus_client import Counter
+from partition.partition_map import PartitionMap
 
 
 class Server:
@@ -20,6 +21,7 @@ class Server:
         self._consistent_hash = ConsistentHashingImpl()
         self._cache = MemTable()
         self._ss_table = SSTable()
+        self._partition_map = PartitionMap()
         self._key_count = Counter("key_counter", "Number of keys", labelnames=["node"])
         self._scheduler = Scheduler(cache=self._cache)
         self._scheduler.init()
@@ -37,7 +39,8 @@ class Server:
 
     def add_data(self, data: Data):
         self._key_count.labels(node=self._private_ip).inc(1)
-        return self._cache.add(data)
+        self._cache.add(data)
+        self._partition_map.update(data, f"{self._private_ip}:{self._port}")
 
     def delete_data(self, key: str):
         data = self.get_data(key)
