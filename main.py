@@ -45,7 +45,13 @@ def add(data: Data, token: str = None):
                 f"{server_instance._private_ip}:{server_instance._port}"
                 == data_node_host_port
             ):
-                return server_instance.add_data(data)
+
+                data_processed = server_instance.add_data(data)
+                nodes = server_instance.get_all_nodes()
+                ids = sorted([int(str(node).replace("n_", "")) for node in nodes])
+
+                req = requests.post(f"http://{data_node_host_port}/add?token=leader")
+                return
             else:
                 req = requests.post(
                     f"http://{data_node_host_port}/add?token=leader",
@@ -162,7 +168,7 @@ def update_partition_map(request: PartitionMapRequest):
         return True
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Error updating partitoon amp {str(e)}"
+            status_code=500, detail=f"Error updating partition map {str(e)}"
         )
 
 
