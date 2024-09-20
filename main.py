@@ -13,6 +13,9 @@ from setproctitle import setproctitle
 from prometheus_client import make_asgi_app
 from prometheus_client import Histogram, Counter
 import time
+from utils.model import PartitionMapOperation
+from typing import Literal
+import asyncio
 
 
 setproctitle("CoreCache")
@@ -39,32 +42,24 @@ def add(data: Data, token: str = None):
     try:
         start_time = time.time()
         logger.info(f"Received request for add {data.key}")
+        
         if server_instance.check_if_leader():
             data_node_host_port = server_instance.get_data_node(data.key)
-            if (
-                f"{server_instance._private_ip}:{server_instance._port}"
-                == data_node_host_port
-            ):
-
-                data_processed = server_instance.add_data(data)
-                nodes = server_instance.get_all_nodes()
-                ids = sorted([int(str(node).replace("n_", "")) for node in nodes])
-
-                req = requests.post(f"http://{data_node_host_port}/add?token=leader")
-                return
+            if (f"{server_instance._private_ip}:{server_instance._port}" == data_node_host_port):
+                stored_data = server_instance.add_data(data)
+                _send_req_to_all_nodes(endpoint="update-partition-map", node_port=data_node_host_port, 
+                                       payload={"key": data.key, "node": server_instance._private_ip,
+                                                "port": server_instance._port,
+                                                "operation": PartitionMapOperation.new,
+                                            })
+                return stored_data
             else:
-                req = requests.post(
-                    f"http://{data_node_host_port}/add?token=leader",
-                    json={
-                        "key": data.key,
-                        "value": data.value,
-                        "timestamp": data.timestamp,
-                        "deleted": data.deleted,
-                    },
-                )
-                if req.status_code != 200:
-                    raise HTTPException(f"{req.reason}")
-                return req.json()
+                return _send_req_to_one_node(endpoint="add?token=leader", request_type="PUT", 
+                                             payload={
+                                                "key": data.key,
+                                                "value": data.value,
+                                                 "timestamp": data.timestamp,
+                                                 "deleted": data.deleted})
         elif token:
             logger.info(f"Add data request from the leader for key: {data.key}")
             return server_instance.add_data(data)
@@ -93,21 +88,14 @@ def get(key: str, token: str = None):
         logger.info(f"Received a request for retrieving data for key: {key}")
         if server_instance.check_if_leader():
             data_node_host_port = server_instance.get_data_node(key)
-            if (
-                f"{server_instance._private_ip}:{server_instance._port}"
-                == data_node_host_port
-            ):
+            if (f"{server_instance._private_ip}:{server_instance._port}" == data_node_host_port):
+                _send_req_to_all_nodes(endpoint="")
                 return server_instance.get_data(key)
             else:
-                req = requests.get(
-                    f"http://{data_node_host_port}/get?token=leader",
-                    params={"key": key},
-                )
-                if req.status_code != 200:
-                    raise HTTPException(f"{req.reason}")
-                return req.json()
+                return _send_req_to_one_node(endpoint="get?token=leader", node_port=data_node_host_port, payload={"key": key})
         elif token:
             return server_instance.get_data(key)
+        
         else:
             raise UnauthorizedRequestException()
     except NoDataFoundException:
@@ -157,7 +145,7 @@ def delete(key: str, token: str = None):
 
 
 @app.post("/update-partition-map/")
-def update_partition_map(request: PartitionMapRequest):
+def update_partitionq_map(request: PartitionMapRequest):
     logger.info(
         "Received request to update partition map for key: {} and node: {}",
         request.key,
@@ -170,6 +158,40 @@ def update_partition_map(request: PartitionMapRequest):
         raise HTTPException(
             status_code=500, detail=f"Error updating partition map {str(e)}"
         )
+
+
+RequestType = Literal["GET", "POST"]
+def _send_req_to_one_node(endpoint, request_type:RequestType, payload, node_port):
+    url = f"http://{node_port}/{endpoint}/"
+    if request_type == 'POST':
+        req = requests.post(url, json=payload)
+    else:
+        req = requests.get(url, params=payload)
+    if req.status_code != 200: 
+        raise HTTPException(f"{req.reason}")
+    
+    return req.json()
+
+def _send_req_to_all_nodes(endpoint, request_type:RequestType, payload):
+    response =  []
+    nodes = server_instance.get_all_other_nodes()
+    for node in nodes:
+        url = f"http://{node}/{endpoint}/"
+        if request_type == 'POST':
+            req = requests.post(url, json=payload)
+        else:
+            req = requests.get(url, params=payload)
+        if req.status_code != 200: 
+            raise HTTPException(f"{req.reason}")
+        response.append(req.json())
+
+    return None
+        
+
+           
+
+
+
 
 
 # Code for exposing Prometheus metrics endpoint

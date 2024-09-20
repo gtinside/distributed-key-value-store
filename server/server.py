@@ -86,8 +86,13 @@ class Server:
             return True
         return False
 
-    def get_all_nodes(self):
-        return self.zk_connection.get_children("/election")
+    def get_all_other_nodes(self):
+        nodes = []
+        for child in self.zk_connection.get_children("/election"):
+            if int(str(child).replace("n_", "")) != self.identifier:
+                data, _ = self.zk_connection.get(f"/election/{child}")
+                nodes.append(data.decode())
+        return nodes
 
     def update_partiton_map(self, request: PartitionMapRequest):
         if request.operation == PartitionMapOperation.new:

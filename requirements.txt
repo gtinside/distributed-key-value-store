@@ -9,3 +9,5 @@ uvicorn
 pytest
 setproctitle
 prometheus-client
+asyncio
+aiohttp
